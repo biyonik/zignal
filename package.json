@@ -1,0 +1,37 @@
+{
+  "name": "@biyonik/zignal",
+  "version": "0.1.0",
+  "description": "Future-proof Angular Signal Forms. Powered by Zod & Material.",
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json",
+    "watch": "ng-packagr -p ng-package.json --watch"
+  },
+  "keywords": [
+    "angular",
+    "signals",
+    "forms",
+    "zod",
+    "material"
+  ],
+  "author": "Ahmet ALTUN",
+  "license": "MIT",
+  "peerDependencies": {
+    "@angular/common": "^17.3.12",
+    "@angular/core": "^17.3.12",
+    "@angular/material": "^17.3.0",
+    "@angular/cdk": "^17.3.10",
+    "rxjs": "^7.0.0",
+    "zod": "^3.0.0"
+  },
+  "devDependencies": {
+    "@angular/common": "^17.3.12",
+    "@angular/compiler": "^17.3.12",
+    "@angular/compiler-cli": "^17.3.12",
+    "@angular/core": "^17.3.12",
+    "@angular/platform-browser": "^17.3.12",
+    "ng-packagr": "^17.3.0",
+    "typescript": "~5.4.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.14.0"
+  }
+}
