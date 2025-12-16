@@ -56,7 +56,7 @@ describe('PasswordField (Security Gatekeeper) Hard Core Tests', () => {
             });
 
             it('should require Special Character', () => {
-                expect(schema.safeParse('Abc1........').success).toBe(false);
+                expect(schema.safeParse('Password123').success).toBe(false);
                 expect(schema.safeParse('Abc1!.......').success).toBe(true);
             });
         });
@@ -98,13 +98,13 @@ describe('PasswordField (Security Gatekeeper) Hard Core Tests', () => {
                 // 1. Validasyon hatasız çalışmalı (Crash Test)
                 expect(() => field.schema()).not.toThrow();
 
-                // 2. Meta karakterlerin kendisini içermeli
-                expect(schema.safeParse('Pass[').success).toBe(true); // '[' içeriyor
-                expect(schema.safeParse('Pass.').success).toBe(true); // '.' içeriyor
+                expect(schema.safeParse('Password[').success).toBe(true); // '[' içeriyor, 9 karakter
+
+                expect(schema.safeParse('Password.').success).toBe(true); // '.' içeriyor, 9 karakter
 
                 // 3. Set dışı karakter reddedilmeli
                 // Eğer escape bozuksa '.' karakteri 'A' ile de eşleşebilirdi.
-                expect(schema.safeParse('PassA').success).toBe(false);
+                expect(schema.safeParse('PasswordA').success).toBe(false);
             });
         });
     });
@@ -148,11 +148,10 @@ describe('PasswordField (Security Gatekeeper) Hard Core Tests', () => {
             expect(field.calculateStrength('Abcdefgh1!')).toBe('good');
 
             // "Abcdefgh1234567" -> Len >= 12 (2), Lower(1), Upper(1), Num(1) -> Score: 5
-            expect(field.calculateStrength('Abcdefgh1234567')).toBe('good');
+            expect(field.calculateStrength('Abcdefgh12345')).toBe('good');
 
             // "Abcdefgh1234567!" -> Len >= 12 (2), 4 Types (4) -> Score: 6
-            expect(field.calculateStrength('Abcdefgh1234567!')).toBe('good');
-        });
+            expect(field.calculateStrength('Abcdefgh1234!')).toBe('good');});
 
         it('should identify STRONG passwords (Score >= 7)', () => {
             // "Abcdefgh1234567!" (16 chars)

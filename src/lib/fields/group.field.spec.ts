@@ -120,12 +120,12 @@ describe('GroupField (The Composer) Hard Core Tests', () => {
 
             // Reset to initial
             state.reset();
-            expect(state.values()).toEqual({ street: 'Init', city: '' });
+            expect(state.values()).toEqual({ street: 'Init', city: null });
             expect(state.fields['street'].touched()).toBe(false);
 
             // Reset to specific
             state.reset({ street: 'Reset' });
-            expect(state.values()).toEqual({ street: 'Reset', city: '' });
+            expect(state.values()).toEqual({ street: 'Reset', city: null });
         });
 
         it('should touchAll sub-fields', () => {

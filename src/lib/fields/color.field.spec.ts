@@ -177,7 +177,7 @@ describe('ColorField Hard Core Tests', () => {
                 // H:120, S:100%, L:50%, A:0.5 (approx)
                 expect(hsla).toContain('hsla(120, 100%, 50%');
                 // Alpha floating point precision check might be tricky, checking existence
-                expect(hsla).toContain(', 0.5)'); // Or close to it
+                expect(hsla).toMatch(/hsla\(120, 100%, 50%, 0\.50\d+\)/);// Or close to it
             });
         });
     });

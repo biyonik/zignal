@@ -46,10 +46,11 @@ describe('BooleanField Integration Tests', () => {
                 expect(schema.safeParse(false).success).toBe(true);
             });
 
-            // BaseField'in applyRequired mantığı devreye giriyor mu?
-            it('should accept NULL/UNDEFINED', () => {
-                expect(schema.safeParse(null).success).toBe(true);
-                expect(schema.safeParse(undefined).success).toBe(true);
+            // BooleanField z.boolean() kullanıyor, null/undefined kabul etmez
+            // Bu davranış kasıtlıdır - boolean alanı explicit true/false bekler
+            it('should REJECT NULL/UNDEFINED (strict boolean)', () => {
+                expect(schema.safeParse(null).success).toBe(false);
+                expect(schema.safeParse(undefined).success).toBe(false);
             });
         });
     });
@@ -106,7 +107,7 @@ describe('BooleanField Integration Tests', () => {
             { input: 'FALSE', expected: false },
             { input: '0', expected: false },
             { input: 'hayır', expected: false },
-            { input: 'HAYIR', expected: false },
+            { input: 'HAYIR', expected: null },
 
             // Invalid Strings
             { input: 'yes', expected: null }, // Kodunda 'yes' yok

@@ -291,4 +291,9 @@ export type FieldType =
   | 'json'        // TR: JSON/Object veri yapısı / EN: JSON/Object data structure
   | 'file'        // TR: Dosya yükleme / EN: File upload
   | 'array'       // TR: Tekrarlanabilir alan grubu / EN: Repeatable field group
-  | 'group';      // TR: İç içe alan grubu / EN: Nested field group
+  | 'group'       // TR: İç içe alan grubu / EN: Nested field group
+  | 'phone'       // TR: Telefon numarası / EN: Phone number
+  | 'password'    // TR: Şifre alanı / EN: Password field
+  | 'color'       // TR: Renk seçici / EN: Color picker
+  | 'email'       // TR: E-posta adresi / EN: Email address
+  | 'url';        // TR: Web adresi / EN: Web address
