@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseField } from './base-field';
+import { BaseField } from './base.field';
 import { FieldConfig } from '../core';
 
 /**

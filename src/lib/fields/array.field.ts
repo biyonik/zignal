@@ -1,6 +1,6 @@
 import { signal, computed, Signal, WritableSignal } from '@angular/core';
 import { z } from 'zod';
-import { BaseField } from './base-field';
+import { BaseField } from './base.field';
 import { FieldConfig, FieldValue, IField } from '../core/interfaces';
 
 /**

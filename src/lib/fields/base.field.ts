@@ -5,7 +5,7 @@ import {
   FieldConfig,
   FieldValue,
   ImportResult
-} from '../core/interfaces';
+} from '../core';
 
 /**
  * @fileoverview

@@ -8,7 +8,7 @@
  */
 
 // Base
-export * from './base-field';
+export * from './base.field';
 
 // Field Implementations
 export * from './string.field';
