@@ -210,6 +210,17 @@ export interface FormState<T extends Record<string, unknown>> {
    * EN: Sets touched=false for all fields.
    */
   markPristine: () => void;
+
+  /**
+   * TR: Cross-field validation hataları.
+   * Alan bazlı değil, form genelinde validasyon hataları.
+   *
+   * EN: Cross-field validation errors.
+   * Form-wide validation errors, not field-specific.
+   *
+   * @example { passwordMatch: "Şifreler eşleşmiyor" }
+   */
+  crossErrors: Signal<Record<string, string | null>>;
 }
 
 // =============================================================================
@@ -294,6 +305,64 @@ function deepEqual(
 }
 
 // =============================================================================
+// TR: Cross-Field Validation Types
+// EN: Cross-Field Validation Types
+// =============================================================================
+
+/**
+ * TR: Cross-field validator tanımı.
+ * Birden fazla alanı kontrol eden validasyon kuralları.
+ *
+ * EN: Cross-field validator definition.
+ * Validation rules that check multiple fields.
+ */
+export interface CrossFieldValidator<T extends Record<string, unknown>> {
+  /**
+   * TR: Validator'ın benzersiz adı.
+   * EN: Unique name of the validator.
+   */
+  name: string;
+
+  /**
+   * TR: Bu validator'ın bağlı olduğu alanlar.
+   * EN: Fields this validator depends on.
+   */
+  fields: (keyof T)[];
+
+  /**
+   * TR: Validasyon fonksiyonu. Hata mesajı döner veya null (geçerli).
+   * EN: Validation function. Returns error message or null (valid).
+   */
+  validate: (values: T) => string | null;
+}
+
+/**
+ * TR: FormSchema için yapılandırma seçenekleri.
+ * EN: Configuration options for FormSchema.
+ */
+export interface FormSchemaOptions<T extends Record<string, unknown>> {
+  /**
+   * TR: Cross-field validator'lar.
+   * EN: Cross-field validators.
+   *
+   * @example
+   * ```typescript
+   * crossValidators: [
+   *   {
+   *     name: 'passwordMatch',
+   *     fields: ['password', 'confirmPassword'],
+   *     validate: (values) =>
+   *       values.password !== values.confirmPassword
+   *         ? 'Şifreler eşleşmiyor'
+   *         : null
+   *   }
+   * ]
+   * ```
+   */
+  crossValidators?: CrossFieldValidator<T>[];
+}
+
+// =============================================================================
 // TR: FormSchema Class
 // EN: FormSchema Class
 // =============================================================================
@@ -358,6 +427,13 @@ export class FormSchema<T extends Record<string, unknown>> {
   private readonly zodSchema: z.ZodObject<z.ZodRawShape>;
 
   /**
+   * TR: Cross-field validator'lar.
+   * EN: Cross-field validators.
+   * @private
+   */
+  private readonly crossValidators: CrossFieldValidator<T>[];
+
+  /**
    * TR: FormSchema constructor'ı.
    *
    * EN: FormSchema constructor.
@@ -367,6 +443,7 @@ export class FormSchema<T extends Record<string, unknown>> {
    *                 EN: List of fields to create the form. Each field must implement
    *                 IField interface. Field order is preserved in UI.
    *
+   * @param options
    * @example
    * ```typescript
    * const schema = new FormSchema([
@@ -376,11 +453,15 @@ export class FormSchema<T extends Record<string, unknown>> {
    * ]);
    * ```
    */
-  constructor(private readonly fields: IField<unknown>[]) {
-    // TR: Hızlı eri_im i�in Map olu_tur
+  constructor(
+    private readonly fields: IField<unknown>[],
+    private readonly options: FormSchemaOptions<T> = {}
+  ) {
+    // TR: Hızlı eri_im için Map oluştur
     // EN: Create Map for quick access
     this.fieldMap = new Map(fields.map((f) => [f.name, f]));
     this.zodSchema = this.buildZodSchema();
+    this.crossValidators = this.options.crossValidators ?? [];
   }
 
   /**
@@ -468,7 +549,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     });
 
     /**
-     * TR: T�m hataları toplayan computed signal.
+     * TR: Tüm hataları toplayan computed signal.
      * EN: Computed signal collecting all errors.
      */
     const errors = computed(() => {
@@ -480,13 +561,36 @@ export class FormSchema<T extends Record<string, unknown>> {
     });
 
     /**
-     * TR: Genel ge�erlilik durumu.
-     * EN: Overall validity status.
+     * TR: Cross-field validation hataları.
+     * EN: Cross-field validation errors.
+     */
+    const crossErrors = computed(() => {
+      const result: Record<string, string | null> = {};
+      const currentValues = values();
+
+      for (const validator of this.crossValidators) {
+        result[validator.name] = validator.validate(currentValues);
+      }
+
+      return result;
+    });
+
+    /**
+     * TR: Genel geçerlilik durumu (cross-field dahil).
+     * EN: Overall validity status (including cross-field).
      */
     const valid = computed(() => {
-      return Object.values(formFields).every(
+      // TR: Alan bazlı validasyon
+      // EN: Field-level validation
+      const fieldsValid = Object.values(formFields).every(
         (fv) => (fv as FieldValue<unknown>).valid()
       );
+
+      // TR: Cross-field validasyon
+      // EN: Cross-field validation
+      const crossValid = Object.values(crossErrors()).every(err => err === null);
+
+      return fieldsValid && crossValid;
     });
 
     /**
@@ -627,6 +731,7 @@ export class FormSchema<T extends Record<string, unknown>> {
       initialValues,
       valid,
       errors,
+      crossErrors,
       dirty,
       pristine,
       touchAll,

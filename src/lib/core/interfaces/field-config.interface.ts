@@ -91,4 +91,31 @@ export interface FieldConfig {
    * @default false
    */
   readonly?: boolean;
+
+  /**
+   * TR: Alanın koşullu olarak zorunlu olup olmadığını belirleyen fonksiyon.
+   * Form değerlerine göre dinamik zorunluluk tanımlamak için kullanılır.
+   * `required` değeri `true` ise bu fonksiyon göz ardı edilir.
+   *
+   * EN: Function that determines if the field is conditionally required.
+   * Used to define dynamic requirement based on form values.
+   * If `required` is `true`, this function is ignored.
+   *
+   * @example
+   * ```typescript
+   * // Kurumsal hesap seçildiğinde vergi numarası zorunlu
+   * requiredWhen: (values) => values.accountType === 'corporate'
+   *
+   * // Ülke Türkiye ise TC Kimlik No zorunlu
+   * requiredWhen: (values) => values.country === 'TR'
+   * ```
+   */
+  requiredWhen?: (values: Record<string, unknown>) => boolean;
+
+  /**
+   * TR: Varsayılan değer. Form oluşturulurken kullanılır.
+   *
+   * EN: Default value. Used when creating the form.
+   */
+  defaultValue?: unknown;
 }

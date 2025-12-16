@@ -6,6 +6,15 @@ import {
   BooleanField,
   DateField,
   SelectField,
+  PasswordField,
+  EmailField,
+  UrlField,
+  PhoneField,
+  ColorField,
+  FileField,
+  TextareaField,
+  MultiselectField,
+  GroupField,
 } from '../fields';
 
 /**
@@ -65,7 +74,12 @@ export const FIELD_REGISTRY: Record<string, FieldConstructor<any>> = {
   // TR: Metin alanları
   // EN: Text fields
   string: StringField,
-  text: StringField, // TR: textarea alias / EN: textarea alias
+  text: TextareaField,
+  textarea: TextareaField,
+  password: PasswordField,
+  email: EmailField,
+  url: UrlField,
+  phone: PhoneField,
 
   // TR: Sayısal alanlar
   // EN: Numeric fields
@@ -87,6 +101,16 @@ export const FIELD_REGISTRY: Record<string, FieldConstructor<any>> = {
   // EN: Selection fields
   select: SelectField,
   enum: SelectField,
+  multiselect: MultiselectField,
+
+  // TR: Özel alanlar
+  // EN: Special fields
+  color: ColorField,
+  file: FileField,
+
+  // TR: Kompleks alanlar
+  // EN: Complex fields
+  group: GroupField,
 };
 
 /**
