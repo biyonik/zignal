@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseField } from './base-field';
-import { FieldConfig } from '../core/interfaces';
+import { FieldConfig } from '../core';
 import { SelectOption } from './select.field';
 
 /**
