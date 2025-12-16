@@ -49,6 +49,9 @@
     },
     "@angular/cdk": {
       "optional": true
+    },
+    "ts-node": {
+        "optional": true
     }
   },
   "devDependencies": {
@@ -70,8 +73,5 @@
   "sideEffects": false,
   "engines": {
     "node": ">=18.0.0"
-  },
-  "dependencies": {
-    "ts-node": "^10.9.2"
   }
 }

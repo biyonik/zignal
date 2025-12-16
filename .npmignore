@@ -1,0 +1,48 @@
+# Source files (dist'te derlenmiş hali var)
+/lib
+/examples
+index.ts
+public-api.ts
+
+# Config files
+tsconfig.json
+tsconfig.lib.json
+ng-package.json
+jest.config.ts
+.eslintrc.json
+.prettierrc
+
+# Development
+.git
+.github
+.vscode
+.idea
+
+# Test files
+**/*.spec.ts
+**/*.test.ts
+**/test/
+**/tests/
+**/__tests__/
+coverage/
+
+# Example files
+**/*.example.ts
+**/examples/
+
+# Build artifacts
+.angular
+out-tsc
+*.tsbuildinfo
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+*.swp
+*.swo
+*~
