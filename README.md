@@ -1,51 +1,83 @@
-# Zignal
+<div align="center">
+  <img src="logo.svg" alt="Zignal Logo" width="120" height="120" />
+  <h1>Zignal</h1>
 
-> **Signal-first, schema-driven form library for Angular 17+**
+  <p>
+    <strong>Signal-first, schema-driven form library for Angular 17+</strong>
+    <br />
+    Angular 17+ için Signal tabanlı, şema güdümlü form kütüphanesi
+  </p>
+
+  <div align="center">
 
 [![npm version](https://img.shields.io/npm/v/@biyonik/zignal.svg)](https://www.npmjs.com/package/@biyonik/zignal)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Angular](https://img.shields.io/badge/Angular-17%2B-DD0031.svg?logo=angular&logoColor=white)](https://angular.io/)
+[![Zod](https://img.shields.io/badge/Zod-Schema-3068B7.svg)](https://zod.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-Zignal, Angular Signals kullanarak reaktif form yönetimi sağlayan, Zod validasyonu ile type-safe bir form kütüphanesidir.
+  </div>
+</div>
 
-## Özellikler
+---
 
-- **Signal-first** - Angular Signals ile fine-grained reactivity
-- **Schema-driven** - JSON'dan dinamik form oluşturma
-- **Type-safe** - Zod entegrasyonu ile runtime + compile-time güvenlik
-- **Zoneless ready** - Angular 18+ zoneless mode uyumlu
-- **UI-agnostic** - Material, PrimeNG veya custom UI ile kullanılabilir
-- **Minimal API** - 5 dakikada öğren, hemen kullan
+## 🌍 Introduction / Tanıtım
 
-## Kurulum
+**🇬🇧 English**
+Zignal is a next-generation form management library designed for the modern Angular ecosystem. It leverages **Angular Signals** for fine-grained reactivity and **Zod** for robust schema validation. Unlike traditional methods, Zignal is **Zoneless-ready**, meaning it doesn't rely on `zone.js` for change detection, offering superior performance.
+
+**🇹🇷 Türkçe**
+Zignal, modern Angular ekosistemi için tasarlanmış yeni nesil bir form yönetim kütüphanesidir. İnce ayarlı reaktivite için **Angular Signals** ve sağlam şema doğrulaması için **Zod** kullanır. Geleneksel yöntemlerin aksine Zignal **Zoneless** uyumludur; yani değişiklik algılama için `zone.js`'e ihtiyaç duymaz ve üstün performans sunar.
+
+## ✨ Features / Özellikler
+
+- 🚀 **Signal-First Architecture:** Built entirely on Angular Signals. No RxJS subscriptions required for state management.
+- 🛡️ **Type-Safe:** Powered by Zod. Full type safety from schema definition to form values.
+- ⚡ **Zoneless Ready:** Perfect for Angular 18+ zoneless applications.
+- 🇹🇷 **TR Validators:** Built-in validators for Turkey (TCKN, VKN, IBAN, Plate, Phone).
+- 🧩 **Schema-Driven:** Create forms from JSON or TypeScript classes easily.
+- 🔌 **UI Agnostic:** Logic is separated from UI. Use it with Material, PrimeNG, or native HTML.
+
+## 📦 Installation / Kurulum
 
 ```bash
 npm install @biyonik/zignal zod
 ```
 
-## Hızlı Başlangıç
+## 🚀 Quick Start / Hızlı Başlangıç
 
-### 1. Field'ları Tanımla
+### 1. Define Fields / Alanları Tanımla
+
+**🇬🇧** Create field instances with their configurations. Zignal provides ready-to-use fields like `StringField`, `NumberField`, etc.
+**🇹🇷** Konfigürasyonlarıyla birlikte alan örneklerini oluşturun. Zignal, `StringField`, `NumberField` gibi kullanıma hazır alanlar sunar.
 
 ```typescript
 import { StringField, NumberField, BooleanField } from '@biyonik/zignal';
 
-const emailField = new StringField('email', 'E-posta', {
+// Simple text field / Basit metin alanı
+const emailField = new StringField('email', 'E-mail', {
   required: true,
-  email: true
+  email: true,
+  placeholder: 'user@example.com'
 });
 
-const ageField = new NumberField('age', 'Yaş', {
+// Number field with constraints / Kısıtlamalı sayı alanı
+const ageField = new NumberField('age', 'Age / Yaş', {
   required: true,
   min: 18,
   max: 100
 });
 
-const acceptTerms = new BooleanField('acceptTerms', 'Şartları kabul ediyorum', {
+// Boolean field (Checkbox) / Mantıksal alan
+const termsField = new BooleanField('terms', 'I accept terms / Şartları kabul ediyorum', {
   required: true
 });
 ```
 
-### 2. Form Schema Oluştur
+### 2. Create Schema / Şema Oluştur
+
+**🇬🇧** Combine fields into a schema. This schema manages the state and validation of the entire form.
+**🇹🇷** Alanları bir şemada birleştirin. Bu şema, tüm formun durumunu ve validasyonunu yönetir.
 
 ```typescript
 import { FormSchema } from '@biyonik/zignal';
@@ -53,26 +85,33 @@ import { FormSchema } from '@biyonik/zignal';
 interface UserForm {
   email: string;
   age: number;
-  acceptTerms: boolean;
+  terms: boolean;
 }
 
-const userSchema = new FormSchema<UserForm>([
+// Create the schema instance
+// Şema örneğini oluştur
+export const userSchema = new FormSchema<UserForm>([
   emailField,
   ageField,
-  acceptTerms
+  termsField
 ]);
 ```
 
-### 3. Component'te Kullan
+### 3. Use in Component / Bileşende Kullan
+
+**🇬🇧** Initialize the form in your component and bind it to the template. Notice usage of Signals: `value()`, `error()`.
+**🇹🇷** Formu bileşeninizde başlatın ve şablona bağlayın. Signal kullanımına dikkat edin: `value()`, `error()`.
 
 ```typescript
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
+import { userSchema } from './user.schema';
 
 @Component({
   selector: 'app-user-form',
+  standalone: true,
   template: `
     <form (ngSubmit)="onSubmit()">
-      <div>
+      <div class="field">
         <label>{{ form.fields.email.label }}</label>
         <input
           [value]="form.fields.email.value()"
@@ -84,201 +123,121 @@ import { Component, inject } from '@angular/core';
         }
       </div>
 
-      <button type="submit" [disabled]="!form.valid()">Kaydet</button>
+      <button type="submit" [disabled]="!form.valid()">
+        Submit / Gönder
+      </button>
     </form>
   `
 })
 export class UserFormComponent {
+  // Initialize form with default values
+  // Formu varsayılan değerlerle başlat
   form = userSchema.createForm({
     email: '',
     age: null,
-    acceptTerms: false
+    terms: false
   });
 
   async onSubmit() {
+    // Trigger validation / Validasyonu tetikle
     if (await this.form.validateAll()) {
+      // Get type-safe data (parsed by Zod)
+      // Tip güvenli veriyi al (Zod tarafından işlenmiş)
       const data = this.form.getValues();
-      console.log('Form data:', data);
+      console.log('Form Data:', data);
     }
   }
 }
 ```
 
-## Field Tipleri
+## 🇹🇷 Turkey-Specific Validators / Türkiye'ye Özgü Validasyonlar
 
-| Field | Tip | Açıklama |
-|-------|-----|----------|
-| `StringField` | `string` | Tek satır metin |
-| `NumberField` | `number` | Sayısal değer |
-| `BooleanField` | `boolean` | Evet/Hayır |
-| `DateField` | `Date` | Tarih |
-| `SelectField<T>` | `T` | Dropdown seçimi |
+**🇬🇧** Zignal comes with built-in validators for Turkish specific data formats. These are strictly validated using official algorithms (Modulus algorithms for TCKN/IBAN etc.).
 
-## Field Config Seçenekleri
-
-### StringField
+**🇹🇷** Zignal, Türkiye'ye özgü veri formatları için yerleşik doğrulayıcılarla gelir. Bunlar resmi algoritmalar (TCKN/IBAN için Modül hesaplamaları vb.) kullanılarak sıkı bir şekilde doğrulanır.
 
 ```typescript
-new StringField('name', 'Ad', {
-  required: true,      // Zorunlu alan
-  minLength: 2,        // Min karakter
-  maxLength: 50,       // Max karakter
-  pattern: /^[A-Z]/,   // Regex pattern
-  email: true,         // E-posta formatı
-  url: true,           // URL formatı
-  placeholder: 'Adınızı giriniz',
-  hint: 'En az 2 karakter'
-});
+import { StringField } from '@biyonik/zignal';
+import { tcknSchema, turkishIbanSchema } from '@biyonik/zignal/validators';
+
+// Custom Field implementing TR Validation
+// TR Validasyonu uygulayan özel alan
+export class TCKNField extends StringField {
+  constructor(name: string, label: string) {
+    super(name, label, { required: true });
+  }
+
+  // Override schema to use built-in TCKN validator
+  // Yerleşik TCKN doğrulayıcısını kullanmak için şemayı ezin
+  override schema() {
+    return tcknSchema;
+  }
+}
+
+// Usage / Kullanım
+const tcknField = new TCKNField('identityNo', 'T.C. Kimlik No');
 ```
 
-### NumberField
+### Available Validators / Mevcut Doğrulayıcılar
+
+| Validator | Description (TR) |
+|-----------|------------------|
+| `tcknSchema` | T.C. Kimlik Numarası (Algoritmik Doğrulama) |
+| `vknSchema` | Vergi Kimlik Numarası |
+| `turkishIbanSchema` | TR IBAN (Mod97 Kontrolü) |
+| `turkishPhoneSchema` | Cep Telefonu (5XXXXXXXXX formatına normalize eder) |
+| `turkishPlateSchema` | Araç Plakası (İl kodu ve harf grubu kontrolü) |
+
+## 🧩 Dynamic Forms (JSON) / Dinamik Formlar
+
+**🇬🇧** You can create forms dynamically using JSON data, perfect for backend-driven UIs.
+**🇹🇷** Backend tabanlı arayüzler için mükemmel olan JSON verilerini kullanarak dinamik formlar oluşturabilirsiniz.
 
 ```typescript
-new NumberField('price', 'Fiyat', {
-  required: true,
-  min: 0,
-  max: 10000,
-  integer: true,       // Sadece tam sayı
-  positive: true,      // Sadece pozitif
-  decimals: 2          // Ondalık basamak
-});
-```
-
-### DateField
-
-```typescript
-new DateField('birthDate', 'Doğum Tarihi', {
-  required: true,
-  maxToday: true,      // Bugün veya öncesi
-  min: new Date('1900-01-01'),
-  locale: 'tr-TR'
-});
-```
-
-### SelectField
-
-```typescript
-new SelectField('country', 'Ülke', {
-  required: true,
-  options: [
-    { value: 'TR', label: 'Türkiye' },
-    { value: 'US', label: 'Amerika' },
-    { value: 'DE', label: 'Almanya' }
-  ],
-  searchable: true,
-  clearable: true
-});
-```
-
-## FormState API
-
-```typescript
-const form = schema.createForm(initialValues);
-
-// Signals (Reactive)
-form.values();           // Signal<T> - Tüm değerler
-form.valid();            // Signal<boolean> - Geçerlilik
-form.dirty();            // Signal<boolean> - Değişiklik var mı?
-form.errors();           // Signal<Record<string, string | null>>
-
-// Field Access
-form.fields.email.value();     // Signal<string>
-form.fields.email.error();     // Signal<string | null>
-form.fields.email.touched();   // Signal<boolean>
-form.fields.email.valid();     // Signal<boolean>
-
-// Actions
-form.setValue('email', 'test@example.com');
-form.patchValues({ email: 'a', age: 25 });
-form.touchAll();               // Tüm hataları göster
-form.reset();                  // Başlangıç değerlerine dön
-form.validateAll();            // Async validation
-
-// Getters
-form.getValues();              // Type-safe data (Zod parsed)
-form.getDirtyValues();         // Sadece değişenler
-```
-
-## JSON'dan Dinamik Form
-
-```typescript
+import { inject } from '@angular/core';
 import { SchemaFactory } from '@biyonik/zignal';
 
-@Component({...})
-export class DynamicFormComponent {
+export class DynamicComponent {
   private factory = inject(SchemaFactory);
 
+  // Create form from JSON config
+  // JSON konfigürasyonundan form oluştur
   form = this.factory.parse([
-    { type: 'string', name: 'email', label: 'E-posta', config: { required: true, email: true } },
-    { type: 'number', name: 'age', label: 'Yaş', config: { min: 18 } },
-    { type: 'date', name: 'birthDate', label: 'Doğum Tarihi' }
+    {
+      type: 'string',
+      name: 'fullName',
+      label: 'Full Name',
+      config: { required: true, minLength: 2 }
+    },
+    {
+      type: 'date',
+      name: 'birthDate',
+      label: 'Birth Date'
+    }
   ]);
 }
 ```
 
-## Özel Field Oluşturma
+## 🏗️ Architecture / Mimari
 
-```typescript
-import { BaseField, FieldConfig } from '@biyonik/zignal';
-import { z } from 'zod';
+### FormState
+Manages the state of the form using Angular Signals.
+* `values()`: Signal containing current form data.
+* `valid()`: Computed signal for overall validity.
+* `dirty()`: Tracks if the form has been modified.
 
-interface PhoneFieldConfig extends FieldConfig {
-  countryCode?: string;
-}
+### DependencyResolver
+Handles complex inter-field dependencies without RxJS subscriptions.
+* **Show When:** Visibility based on other fields.
+* **Enable When:** Enable/Disable logic.
+* **Compute:** Calculate values (e.g., `Price * Quantity`).
+* **Circular Check:** Automatically detects infinite dependency loops.
 
-export class PhoneField extends BaseField<string> {
-  constructor(
-    name: string,
-    label: string,
-    public override config: PhoneFieldConfig = {}
-  ) {
-    super(name, label, config);
-  }
+## 🤝 Contributing / Katkıda Bulunma
 
-  schema(): z.ZodType<string> {
-    const base = z.string().regex(
-      /^[0-9]{10}$/,
-      'Geçerli bir telefon numarası giriniz'
-    );
-    return this.applyRequired(base);
-  }
+**🇬🇧** Contributions are welcome! Please check `CONTRIBUTING.md` for details on code standards and testing.
+**🇹🇷** Katkılarınızı bekliyoruz! Kod standartları ve test süreçleri için lütfen `CONTRIBUTING.md` dosyasına göz atın.
 
-  override present(value: string | null): string {
-    if (!value) return '-';
-    return `${this.config.countryCode || '+90'} ${value}`;
-  }
-}
-```
+## 📄 License
 
-## Karşılaştırma
-
-| Özellik | ngx-formly | Zignal |
-|---------|------------|--------|
-| Reactivity | RxJS/Observable | Angular Signals |
-| Zoneless | ❌ | ✅ |
-| Type Safety | Kısıtlı | Zod ile tam |
-| Bundle Size | ~50KB | <20KB |
-| Learning Curve | Yüksek | Düşük |
-
-## Gereksinimler
-
-- Angular 17.0.0 veya üstü
-- Zod 3.22.0 veya üstü
-- TypeScript 5.0 veya üstü
-
-## Lisans
-
-MIT License - Ahmet ALTUN
-
-## Katkıda Bulunma
-
-1. Fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit edin (`git commit -m 'feat: add amazing feature'`)
-4. Push edin (`git push origin feature/amazing-feature`)
-5. Pull Request açın
-
-## Destek
-
-- [GitHub Issues](https://github.com/biyonik/zignal/issues)
-- [Discussions](https://github.com/biyonik/zignal/discussions)
+MIT License - Copyright (c) 2025 Biyonik
