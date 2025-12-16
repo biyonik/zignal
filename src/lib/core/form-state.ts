@@ -1,11 +1,11 @@
-import { computed, signal, Signal, WritableSignal } from '@angular/core';
+import { computed, signal, Signal } from '@angular/core';
 import { z } from 'zod';
-import { IField, FieldValue } from '../fields';
+import {FieldValue, IField} from "./interfaces";
 
 /**
  * @fileoverview
- * TR: Form durumu (state) yönetimi için temel s1n1f ve interface'ler.
- * Angular Signals kullanarak reaktif form state yönetimi salar.
+ * TR: Form durumu (state) yÃ¶netimi iÃ§in temel sÄ±nÄ±f ve interface'ler.
+ * Angular Signals kullanarak reaktif form state yÃ¶netimi saÄŸlar.
  *
  * EN: Base class and interfaces for form state management.
  * Provides reactive form state management using Angular Signals.
@@ -15,14 +15,14 @@ import { IField, FieldValue } from '../fields';
  */
 
 // =============================================================================
-// TR: Interfaces - Arayüzler
+// TR: Interfaces - Arayï¿½zler
 // EN: Interfaces
 // =============================================================================
 
 /**
- * TR: Form'un anl1k durumunu (state) ve yönetim metodlar1n1 bar1nd1ran arayüz.
- * Angular Signals tabanl1d1r; form dei_iklikleri an1nda ve performansl1 _ekilde
- * UI'a yans1r (fine-grained reactivity).
+ * TR: Form'un anlÄ±k durumunu (state) ve yï¿½netim metodlarÄ±nÄ± barÄ±ndÄ±ran arayï¿½z.
+ * Angular Signals tabanlÄ±dÄ±r; form dei_iklikleri anÄ±nda ve performanslÄ± _ekilde
+ * UI'a yansÄ±r (fine-grained reactivity).
  *
  * EN: Interface holding the form's instant state and management methods.
  * Based on Angular Signals; form changes are reflected to UI instantly
@@ -46,21 +46,21 @@ import { IField, FieldValue } from '../fields';
  * console.log(form.values());        // { email: '', password: '' }
  * console.log(form.valid());         // false
  *
- * // Deer güncelleme
+ * // Deer gï¿½ncelleme
  * form.setValue('email', 'test@example.com');
  *
- * // Submit öncesi
+ * // Submit ï¿½ncesi
  * const isValid = await form.validateAll();
  * if (isValid) {
  *   const data = form.getValues();
- *   // API'ye gönder
+ *   // API'ye gï¿½nder
  * }
  * ```
  */
 export interface FormState<T extends Record<string, unknown>> {
   /**
-   * TR: Her alan için reaktif state (FieldValue) tutan nesne haritas1.
-   * Alan ad1na göre eri_im salar.
+   * TR: Her alan iï¿½in reaktif state (FieldValue) tutan nesne haritasÄ±.
+   * Alan adÄ±na gï¿½re eri_im salar.
    *
    * EN: Object map holding reactive state (FieldValue) for each field.
    * Provides access by field name.
@@ -68,16 +68,16 @@ export interface FormState<T extends Record<string, unknown>> {
    * @example
    * ```typescript
    * form.fields.email.value();      // Mevcut deer
-   * form.fields.email.error();      // Hata mesaj1 (null ise hata yok)
-   * form.fields.email.touched();    // Kullan1c1 dokundu mu?
-   * form.fields.email.valid();      // Geçerli mi?
+   * form.fields.email.error();      // Hata mesajÄ± (null ise hata yok)
+   * form.fields.email.touched();    // KullanÄ±cÄ± dokundu mu?
+   * form.fields.email.valid();      // Geï¿½erli mi?
    * ```
    */
   fields: { [K in keyof T]: FieldValue<T[K]> };
 
   /**
-   * TR: Tüm form deerlerini tek nesne olarak döndüren computed signal.
-   * Herhangi bir alan dei_tiinde otomatik güncellenir.
+   * TR: Tï¿½m form deerlerini tek nesne olarak dï¿½ndï¿½ren computed signal.
+   * Herhangi bir alan dei_tiinde otomatik gï¿½ncellenir.
    *
    * EN: Computed signal returning all form values as single object.
    * Automatically updates when any field changes.
@@ -85,8 +85,8 @@ export interface FormState<T extends Record<string, unknown>> {
   values: Signal<T>;
 
   /**
-   * TR: Form'un ba_lang1ç deerlerini tutan signal.
-   * reset() çar1ld11nda bu deerlere dönülür.
+   * TR: Form'un ba_langÄ±ï¿½ deerlerini tutan signal.
+   * reset() ï¿½arÄ±ldÄ±Ä±nda bu deerlere dï¿½nï¿½lï¿½r.
    *
    * EN: Signal holding initial values of the form.
    * Form returns to these values when reset() is called.
@@ -94,8 +94,8 @@ export interface FormState<T extends Record<string, unknown>> {
   initialValues: Signal<T>;
 
   /**
-   * TR: Form'un genel geçerlilik durumu.
-   * Tüm alanlar geçerliyse `true`, en az bir hata varsa `false`.
+   * TR: Form'un genel geï¿½erlilik durumu.
+   * Tï¿½m alanlar geï¿½erliyse `true`, en az bir hata varsa `false`.
    *
    * EN: Overall validity status of the form.
    * `true` if all fields valid, `false` if at least one error.
@@ -103,31 +103,31 @@ export interface FormState<T extends Record<string, unknown>> {
   valid: Signal<boolean>;
 
   /**
-   * TR: Alan bazl1 hata mesajlar1n1 içeren signal.
+   * TR: Alan bazlÄ± hata mesajlarÄ±nÄ± iï¿½eren signal.
    *
    * EN: Signal containing field-based error messages.
    *
-   * @example { email: "Geçersiz format", password: null }
+   * @example { email: "Geï¿½ersiz format", password: null }
    */
   errors: Signal<Partial<Record<keyof T, string | null>>>;
 
   /**
-   * TR: Form'un "kirli" olup olmad11 - ba_lang1ç deerinden farkl1 m1?
+   * TR: Form'un "kirli" olup olmadÄ±Ä± - ba_langÄ±ï¿½ deerinden farklÄ± mÄ±?
    *
    * EN: Whether form is "dirty" - different from initial values?
    */
   dirty: Signal<boolean>;
 
   /**
-   * TR: Form'un "temiz" olup olmad11 - hiçbir alana dokunulmad1 m1?
+   * TR: Form'un "temiz" olup olmadÄ±Ä± - hiï¿½bir alana dokunulmadÄ± mÄ±?
    *
    * EN: Whether form is "pristine" - no field has been touched?
    */
   pristine: Signal<boolean>;
 
   /**
-   * TR: Tüm alanlar1 "dokunulmu_" olarak i_aretler.
-   * Submit öncesi tüm hatalar1 göstermek için kullan1l1r.
+   * TR: Tï¿½m alanlarÄ± "dokunulmu_" olarak i_aretler.
+   * Submit ï¿½ncesi tï¿½m hatalarÄ± gï¿½stermek iï¿½in kullanÄ±lÄ±r.
    *
    * EN: Marks all fields as "touched".
    * Used to show all errors before submit.
@@ -135,49 +135,49 @@ export interface FormState<T extends Record<string, unknown>> {
   touchAll: () => void;
 
   /**
-   * TR: Formu ba_lang1ç deerlerine s1f1rlar.
-   * Yeni ba_lang1ç deerleri verilebilir.
+   * TR: Formu ba_langÄ±ï¿½ deerlerine sÄ±fÄ±rlar.
+   * Yeni ba_langÄ±ï¿½ deerleri verilebilir.
    *
    * EN: Resets form to initial values.
    * New initial values can be provided.
    *
-   * @param newInitial - TR: Yeni ba_lang1ç deerleri (opsiyonel)
+   * @param newInitial - TR: Yeni ba_langÄ±ï¿½ deerleri (opsiyonel)
    *                     EN: New initial values (optional)
    */
   reset: (newInitial?: Partial<T>) => void;
 
   /**
-   * TR: Belirli bir alan1n deerini günceller.
+   * TR: Belirli bir alanÄ±n deerini gï¿½nceller.
    *
    * EN: Updates value of specific field.
    *
-   * @param name - TR: Alan ad1 / EN: Field name
+   * @param name - TR: Alan adÄ± / EN: Field name
    * @param value - TR: Yeni deer / EN: New value
    */
   setValue: <K extends keyof T>(name: K, value: T[K]) => void;
 
   /**
-   * TR: Birden fazla alan deerini tek seferde günceller.
+   * TR: Birden fazla alan deerini tek seferde gï¿½nceller.
    *
    * EN: Updates multiple field values at once.
    *
-   * @param values - TR: Güncellenecek deerler / EN: Values to update
+   * @param values - TR: Gï¿½ncellenecek deerler / EN: Values to update
    */
   patchValues: (values: Partial<T>) => void;
 
   /**
-   * TR: Zod _emas1ndan geçirilmi_, type-safe form deerlerini döndürür.
+   * TR: Zod _emasÄ±ndan geï¿½irilmi_, type-safe form deerlerini dï¿½ndï¿½rï¿½r.
    *
    * EN: Returns type-safe form values passed through Zod schema.
    *
-   * @throws TR: Form geçersizse Zod hatas1 f1rlat1r
+   * @throws TR: Form geï¿½ersizse Zod hatasÄ± fÄ±rlatÄ±r
    *         EN: Throws Zod error if form is invalid
    */
   getValues: () => T;
 
   /**
-   * TR: Sadece dei_en (dirty) alanlar1n deerlerini döndürür.
-   * Patch update API'leri için kullan1_l1d1r.
+   * TR: Sadece dei_en (dirty) alanlarÄ±n deerlerini dï¿½ndï¿½rï¿½r.
+   * Patch update API'leri iï¿½in kullanÄ±_lÄ±dÄ±r.
    *
    * EN: Returns only values of changed (dirty) fields.
    * Useful for patch update APIs.
@@ -185,27 +185,27 @@ export interface FormState<T extends Record<string, unknown>> {
   getDirtyValues: () => Partial<T>;
 
   /**
-   * TR: Tüm alanlar1 validate eder ve sonucu döner.
-   * Submit öncesi çar1lmal1d1r.
+   * TR: Tï¿½m alanlarÄ± validate eder ve sonucu dï¿½ner.
+   * Submit ï¿½ncesi ï¿½arÄ±lmalÄ±dÄ±r.
    *
    * EN: Validates all fields and returns result.
    * Should be called before submit.
    *
-   * @returns TR: Form geçerli ise true / EN: True if form is valid
+   * @returns TR: Form geï¿½erli ise true / EN: True if form is valid
    */
   validateAll: () => Promise<boolean>;
 
   /**
-   * TR: Belirli bir alan1 dirty olarak i_aretler.
+   * TR: Belirli bir alanÄ± dirty olarak i_aretler.
    *
    * EN: Marks specific field as dirty.
    *
-   * @param name - TR: Alan ad1 / EN: Field name
+   * @param name - TR: Alan adÄ± / EN: Field name
    */
   markDirty: (name: keyof T) => void;
 
   /**
-   * TR: Tüm alanlar1 touched=false yapar.
+   * TR: Tï¿½m alanlarÄ± touched=false yapar.
    *
    * EN: Sets touched=false for all fields.
    */
@@ -213,13 +213,13 @@ export interface FormState<T extends Record<string, unknown>> {
 }
 
 // =============================================================================
-// TR: Utility Functions - Yard1mc1 Fonksiyonlar
+// TR: Utility Functions - YardÄ±mcÄ± Fonksiyonlar
 // EN: Utility Functions
 // =============================================================================
 
 /**
  * TR: 0ki deerin derin e_itliini kontrol eder.
- * Circular reference korumas1 ile stack overflow'u önler.
+ * Circular reference korumasÄ± ile stack overflow'u ï¿½nler.
  *
  * EN: Checks deep equality of two values.
  * Prevents stack overflow with circular reference protection.
@@ -236,37 +236,37 @@ function deepEqual(
   b: unknown,
   visited = new WeakMap<object, Set<object>>()
 ): boolean {
-  // TR: Primitif deerler için h1zl1 kontrol
+  // TR: Primitif deerler iï¿½in hÄ±zlÄ± kontrol
   // EN: Quick check for primitive values
   if (a === b) return true;
   if (a == null || b == null) return a === b;
   if (typeof a !== typeof b) return false;
 
-  // TR: Date nesneleri için özel kontrol
+  // TR: Date nesneleri iï¿½in ï¿½zel kontrol
   // EN: Special check for Date objects
   if (a instanceof Date && b instanceof Date) {
     return a.getTime() === b.getTime();
   }
 
-  // TR: Object tipler için circular reference kontrolü
+  // TR: Object tipler iï¿½in circular reference kontrolï¿½
   // EN: Circular reference check for object types
   if (typeof a === 'object' && typeof b === 'object') {
     const objA = a as object;
     const objB = b as object;
 
-    // TR: Circular reference kontrolü
+    // TR: Circular reference kontrolï¿½
     // EN: Circular reference check
     if (visited.has(objA)) {
       const visitedSet = visited.get(objA)!;
       if (visitedSet.has(objB)) {
-        return true; // TR: Sonsuz döngüyü önle / EN: Prevent infinite loop
+        return true; // TR: Sonsuz dï¿½ngï¿½yï¿½ ï¿½nle / EN: Prevent infinite loop
       }
       visitedSet.add(objB);
     } else {
       visited.set(objA, new Set([objB]));
     }
 
-    // TR: Array kontrolü
+    // TR: Array kontrolï¿½
     // EN: Array check
     if (Array.isArray(a) && Array.isArray(b)) {
       if (a.length !== b.length) return false;
@@ -299,19 +299,19 @@ function deepEqual(
 // =============================================================================
 
 /**
- * TR: Form yap1s1n1 tan1mlayan, yöneten ve çal1_ma zaman1nda in_a eden ana s1n1f.
- * Ba1ms1z Field tan1mlar1n1 birle_tirir, merkezi Zod validasyon _emas1 olu_turur
- * ve reaktif FormState ba_lat1r.
+ * TR: Form yapÄ±sÄ±nÄ± tanÄ±mlayan, yï¿½neten ve ï¿½alÄ±_ma zamanÄ±nda in_a eden ana sÄ±nÄ±f.
+ * BaÄ±msÄ±z Field tanÄ±mlarÄ±nÄ± birle_tirir, merkezi Zod validasyon _emasÄ± olu_turur
+ * ve reaktif FormState ba_latÄ±r.
  *
  * EN: Main class that defines, manages, and builds form structure at runtime.
  * Combines independent Field definitions, creates central Zod validation schema,
  * and initializes reactive FormState.
  *
- * @template T - TR: Form'un veri yap1s1 / EN: Data structure of the form
+ * @template T - TR: Form'un veri yapÄ±sÄ± / EN: Data structure of the form
  *
  * @example
  * ```typescript
- * // 1. Field'lar1 tan1mla
+ * // Ä±. Field'larÄ± tanÄ±mla
  * const emailField = new StringField('email', 'E-posta', {
  *   required: true,
  *   email: true
@@ -340,7 +340,7 @@ function deepEqual(
  */
 export class FormSchema<T extends Record<string, unknown>> {
   /**
-   * TR: Alan ad1 -> IField mapping için h1zl1 eri_im Map'i.
+   * TR: Alan adÄ± -> IField mapping iï¿½in hÄ±zlÄ± eri_im Map'i.
    *
    * EN: Quick access Map for field name -> IField mapping.
    *
@@ -349,7 +349,7 @@ export class FormSchema<T extends Record<string, unknown>> {
   private readonly fieldMap: Map<string, IField<unknown>>;
 
   /**
-   * TR: Tüm alanlar1n birle_ik Zod object _emas1.
+   * TR: Tï¿½m alanlarÄ±n birle_ik Zod object _emasÄ±.
    *
    * EN: Combined Zod object schema of all fields.
    *
@@ -358,12 +358,12 @@ export class FormSchema<T extends Record<string, unknown>> {
   private readonly zodSchema: z.ZodObject<z.ZodRawShape>;
 
   /**
-   * TR: FormSchema constructor'1.
+   * TR: FormSchema constructor'Ä±.
    *
    * EN: FormSchema constructor.
    *
    * @param fields - TR: Formu olu_turacak alan listesi. Her alan IField interface'ini
-   *                 implemente etmelidir. Alan s1ras1 UI'da korunur.
+   *                 implemente etmelidir. Alan sÄ±rasÄ± UI'da korunur.
    *                 EN: List of fields to create the form. Each field must implement
    *                 IField interface. Field order is preserved in UI.
    *
@@ -377,18 +377,18 @@ export class FormSchema<T extends Record<string, unknown>> {
    * ```
    */
   constructor(private readonly fields: IField<unknown>[]) {
-    // TR: H1zl1 eri_im için Map olu_tur
+    // TR: HÄ±zlÄ± eri_im iï¿½in Map olu_tur
     // EN: Create Map for quick access
     this.fieldMap = new Map(fields.map((f) => [f.name, f]));
     this.zodSchema = this.buildZodSchema();
   }
 
   /**
-   * TR: Tüm alanlar1n bireysel _emalar1n1 birle_tirerek tek Zod Object _emas1 olu_turur.
+   * TR: Tï¿½m alanlarÄ±n bireysel _emalarÄ±nÄ± birle_tirerek tek Zod Object _emasÄ± olu_turur.
    *
    * EN: Creates single Zod Object schema by combining individual schemas of all fields.
    *
-   * @returns TR: Birle_ik Zod object _emas1
+   * @returns TR: Birle_ik Zod object _emasÄ±
    *          EN: Combined Zod object schema
    *
    * @private
@@ -402,16 +402,16 @@ export class FormSchema<T extends Record<string, unknown>> {
   }
 
   /**
-   * TR: Tan1mlanan _emaya göre yeni reaktif form state (FormState) olu_turur.
-   * Her çar1da ba1ms1z yeni bir state instance'1 döner.
+   * TR: TanÄ±mlanan _emaya gï¿½re yeni reaktif form state (FormState) olu_turur.
+   * Her ï¿½arÄ±da baÄ±msÄ±z yeni bir state instance'Ä± dï¿½ner.
    *
    * EN: Creates new reactive form state (FormState) based on defined schema.
    * Returns independent new state instance on each call.
    *
-   * @param initial - TR: Form'un ba_lang1ç deerleri. Belirtilmeyen alanlar null olur.
+   * @param initial - TR: Form'un ba_langÄ±ï¿½ deerleri. Belirtilmeyen alanlar null olur.
    *                  EN: Initial values of the form. Unspecified fields become null.
    *
-   * @returns TR: Yönetilebilir reaktif form state nesnesi
+   * @returns TR: Yï¿½netilebilir reaktif form state nesnesi
    *          EN: Manageable reactive form state object
    *
    * @example
@@ -419,7 +419,7 @@ export class FormSchema<T extends Record<string, unknown>> {
    * // Bo_ form
    * const emptyForm = schema.createForm();
    *
-   * // Ba_lang1ç deerleri ile
+   * // Ba_langÄ±ï¿½ deerleri ile
    * const filledForm = schema.createForm({
    *   email: 'user@example.com',
    *   name: 'John Doe'
@@ -430,11 +430,11 @@ export class FormSchema<T extends Record<string, unknown>> {
    * ```
    */
   createForm(initial: Partial<T> = {}): FormState<T> {
-    // TR: Ba_lang1ç deerlerini sakla
+    // TR: Ba_langÄ±ï¿½ deerlerini sakla
     // EN: Store initial values
     const initialValues = signal<T>({ ...initial } as T);
 
-    // TR: Her alan için FieldValue olu_tur
+    // TR: Her alan iï¿½in FieldValue olu_tur
     // EN: Create FieldValue for each field
     const fieldEntries = this.fields.map((field) => {
       const initValue = initial[field.name as keyof T] ?? null;
@@ -443,7 +443,7 @@ export class FormSchema<T extends Record<string, unknown>> {
 
     const formFields = Object.fromEntries(fieldEntries) as FormState<T>['fields'];
 
-    // TR: Ba_lang1ç deerlerini her alan için sakla (dirty hesaplamas1 için)
+    // TR: Ba_langÄ±ï¿½ deerlerini her alan iï¿½in sakla (dirty hesaplamasÄ± iï¿½in)
     // EN: Store initial values for each field (for dirty calculation)
     const initialFieldValues = new Map<string, unknown>();
     for (const [name, fv] of Object.entries(formFields)) {
@@ -456,7 +456,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     // =========================================================================
 
     /**
-     * TR: Tüm form deerlerini döndüren computed signal.
+     * TR: Tï¿½m form deerlerini dï¿½ndï¿½ren computed signal.
      * EN: Computed signal returning all form values.
      */
     const values = computed(() => {
@@ -468,7 +468,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     });
 
     /**
-     * TR: Tüm hatalar1 toplayan computed signal.
+     * TR: Tï¿½m hatalarÄ± toplayan computed signal.
      * EN: Computed signal collecting all errors.
      */
     const errors = computed(() => {
@@ -480,7 +480,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     });
 
     /**
-     * TR: Genel geçerlilik durumu.
+     * TR: Genel geï¿½erlilik durumu.
      * EN: Overall validity status.
      */
     const valid = computed(() => {
@@ -505,7 +505,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     });
 
     /**
-     * TR: Pristine durumu - hiçbir alana dokunulmad1 m1?
+     * TR: Pristine durumu - hiï¿½bir alana dokunulmadÄ± mÄ±?
      * EN: Pristine status - no field has been touched?
      */
     const pristine = computed(() => {
@@ -515,12 +515,12 @@ export class FormSchema<T extends Record<string, unknown>> {
     });
 
     // =========================================================================
-    // TR: Action Methods - Aksiyon Metodlar1
+    // TR: Action Methods - Aksiyon MetodlarÄ±
     // EN: Action Methods
     // =========================================================================
 
     /**
-     * TR: Tüm alanlar1 touched yap.
+     * TR: Tï¿½m alanlarÄ± touched yap.
      * EN: Mark all fields as touched.
      */
     const touchAll = (): void => {
@@ -530,7 +530,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Formu s1f1rla.
+     * TR: Formu sÄ±fÄ±rla.
      * EN: Reset the form.
      */
     const reset = (newInitial?: Partial<T>): void => {
@@ -546,7 +546,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Tek alan deeri güncelle.
+     * TR: Tek alan deeri gï¿½ncelle.
      * EN: Update single field value.
      */
     const setValue = <K extends keyof T>(name: K, value: T[K]): void => {
@@ -557,7 +557,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Birden fazla alan deeri güncelle.
+     * TR: Birden fazla alan deeri gï¿½ncelle.
      * EN: Update multiple field values.
      */
     const patchValues = (vals: Partial<T>): void => {
@@ -567,7 +567,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Validasyondan geçmi_ deerleri al.
+     * TR: Validasyondan geï¿½mi_ deerleri al.
      * EN: Get validated values.
      */
     const getValues = (): T => {
@@ -575,7 +575,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Sadece dei_en alanlar1n deerlerini al.
+     * TR: Sadece dei_en alanlarÄ±n deerlerini al.
      * EN: Get only changed field values.
      */
     const getDirtyValues = (): Partial<T> => {
@@ -591,7 +591,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Tüm alanlar1 validate et.
+     * TR: Tï¿½m alanlarÄ± validate et.
      * EN: Validate all fields.
      */
     const validateAll = async (): Promise<boolean> => {
@@ -601,7 +601,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Belirli alan1 dirty olarak i_aretle.
+     * TR: Belirli alanÄ± dirty olarak i_aretle.
      * EN: Mark specific field as dirty.
      */
     const markDirty = (name: keyof T): void => {
@@ -612,7 +612,7 @@ export class FormSchema<T extends Record<string, unknown>> {
     };
 
     /**
-     * TR: Tüm alanlar1 pristine yap.
+     * TR: Tï¿½m alanlarÄ± pristine yap.
      * EN: Mark all fields as pristine.
      */
     const markPristine = (): void => {
@@ -642,16 +642,16 @@ export class FormSchema<T extends Record<string, unknown>> {
   }
 
   // ===========================================================================
-  // TR: Schema Utility Methods - ^ema Yard1mc1 Metodlar1
+  // TR: Schema Utility Methods - ^ema YardÄ±mcÄ± MetodlarÄ±
   // EN: Schema Utility Methods
   // ===========================================================================
 
   /**
-   * TR: 0sme göre alan (Field) tan1m1n1 döndürür.
+   * TR: 0sme gï¿½re alan (Field) tanÄ±mÄ±nÄ± dï¿½ndï¿½rï¿½r.
    *
    * EN: Returns field definition by name.
    *
-   * @param name - TR: Alan ad1 / EN: Field name
+   * @param name - TR: Alan adÄ± / EN: Field name
    * @returns TR: Field veya undefined / EN: Field or undefined
    *
    * @example
@@ -667,7 +667,7 @@ export class FormSchema<T extends Record<string, unknown>> {
   }
 
   /**
-   * TR: Tüm alan listesini döndürür.
+   * TR: Tï¿½m alan listesini dï¿½ndï¿½rï¿½r.
    *
    * EN: Returns list of all fields.
    *
@@ -678,8 +678,8 @@ export class FormSchema<T extends Record<string, unknown>> {
   }
 
   /**
-   * TR: Tüm alan etiketlerini döndürür.
-   * CSV/Excel export ba_l1klar1 için kullan1_l1d1r.
+   * TR: Tï¿½m alan etiketlerini dï¿½ndï¿½rï¿½r.
+   * CSV/Excel export ba_lÄ±klarÄ± iï¿½in kullanÄ±_lÄ±dÄ±r.
    *
    * EN: Returns all field labels.
    * Useful for CSV/Excel export headers.
@@ -691,24 +691,24 @@ export class FormSchema<T extends Record<string, unknown>> {
   }
 
   /**
-   * TR: Tüm alan adlar1n1 döndürür.
+   * TR: Tï¿½m alan adlarÄ±nÄ± dï¿½ndï¿½rï¿½r.
    *
    * EN: Returns all field names.
    *
-   * @returns TR: Alan ad1 dizisi / EN: Array of field names
+   * @returns TR: Alan adÄ± dizisi / EN: Array of field names
    */
   getNames(): string[] {
     return this.fields.map((f) => f.name);
   }
 
   /**
-   * TR: Birle_ik Zod _emas1n1 döndürür.
-   * 0leri seviye validasyon veya tip ç1kar1m1 için kullan1labilir.
+   * TR: Birle_ik Zod _emasÄ±nÄ± dï¿½ndï¿½rï¿½r.
+   * 0leri seviye validasyon veya tip ï¿½Ä±karÄ±mÄ± iï¿½in kullanÄ±labilir.
    *
    * EN: Returns combined Zod schema.
    * Can be used for advanced validation or type inference.
    *
-   * @returns TR: Zod object _emas1 / EN: Zod object schema
+   * @returns TR: Zod object _emasÄ± / EN: Zod object schema
    */
   getZodSchema(): z.ZodObject<z.ZodRawShape> {
     return this.zodSchema;
@@ -721,7 +721,7 @@ export class FormSchema<T extends Record<string, unknown>> {
 // =============================================================================
 
 /**
- * TR: FormSchema olu_turmak için k1sa yol fonksiyonu.
+ * TR: FormSchema olu_turmak iï¿½in kÄ±sa yol fonksiyonu.
  *
  * EN: Shortcut function to create FormSchema.
  *

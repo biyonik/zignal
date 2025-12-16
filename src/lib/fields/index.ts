@@ -1,7 +1,7 @@
 /**
  * @fileoverview
- * TR: Zignal field implementasyonlar1n1n barrel export dosyas1.
- * T�m field s1n1flar1 ve ilgili interface'ler buradan d1_a aktar1l1r.
+ * TR: Zignal field implementasyonlarının barrel export dosyası.
+ * Tüm field sınıfları ve ilgili interface'ler buradan dışa aktarılır.
  *
  * EN: Barrel export file for Zignal field implementations.
  * All field classes and related interfaces are exported from here.
