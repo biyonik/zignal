@@ -5,24 +5,47 @@
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": true,
+    "declarationMap": true,
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "module": "es2022",
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2022",
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
-      "es2018",
+      "es2022",
       "dom"
-    ]
+    ],
+    "paths": {
+      "@ANG-SIGNAL-FORMS/zignal": ["src/public-api.ts"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts"
+  ]
 }

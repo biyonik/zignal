@@ -1,37 +1,74 @@
 {
   "name": "@biyonik/zignal",
   "version": "0.1.0",
-  "description": "Future-proof Angular Signal Forms. Powered by Zod & Material.",
+  "description": "Signal-first, schema-driven form library for Angular 17+. Powered by Zod validation.",
   "scripts": {
     "build": "ng-packagr -p ng-package.json",
-    "watch": "ng-packagr -p ng-package.json --watch"
+    "build:watch": "ng-packagr -p ng-package.json --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\""
   },
   "keywords": [
     "angular",
     "signals",
     "forms",
+    "form-builder",
+    "schema-driven",
     "zod",
-    "material"
+    "validation",
+    "reactive-forms",
+    "material",
+    "typescript",
+    "zoneless"
   ],
-  "author": "Ahmet ALTUN",
+  "author": {
+    "name": "Ahmet ALTUN",
+    "email": "ahmet.altun60@gmail.com",
+    "url": "https://github.com/biyonik"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/biyonik/zignal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/biyonik/zignal/issues"
+  },
+  "homepage": "https://github.com/biyonik/zignal#readme",
   "peerDependencies": {
-    "@angular/common": "^17.3.12",
-    "@angular/core": "^17.3.12",
-    "@angular/material": "^17.3.0",
-    "@angular/cdk": "^17.3.10",
-    "rxjs": "^7.0.0",
-    "zod": "^3.0.0"
+    "@angular/core": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "@angular/common": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "@angular/forms": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "zod": "^3.22.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular/material": {
+      "optional": true
+    },
+    "@angular/cdk": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@angular/common": "^17.3.12",
     "@angular/compiler": "^17.3.12",
     "@angular/compiler-cli": "^17.3.12",
     "@angular/core": "^17.3.12",
+    "@angular/forms": "^17.3.12",
     "@angular/platform-browser": "^17.3.12",
+    "@types/jest": "^29.5.0",
+    "jest": "^29.7.0",
+    "jest-preset-angular": "^14.0.0",
     "ng-packagr": "^17.3.0",
     "typescript": "~5.4.0",
     "tslib": "^2.3.0",
+    "zod": "^3.22.0",
     "zone.js": "~0.14.0"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
