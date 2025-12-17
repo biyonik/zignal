@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseField } from './base.field';
-import { FieldConfig } from '../core';
+import { FieldConfig, t } from '../core';
 
 /**
  * @fileoverview
@@ -22,59 +22,59 @@ import { FieldConfig } from '../core';
  * Defines password security policies.
  */
 export interface PasswordFieldConfig extends FieldConfig {
-  /**
-   * TR: Minimum karakter sayısı.
-   * EN: Minimum character count.
-   * @default 8
-   */
-  minLength?: number;
+    /**
+     * TR: Minimum karakter sayısı.
+     * EN: Minimum character count.
+     * @default 8
+     */
+    minLength?: number;
 
-  /**
-   * TR: Maksimum karakter sayısı.
-   * EN: Maximum character count.
-   */
-  maxLength?: number;
+    /**
+     * TR: Maksimum karakter sayısı.
+     * EN: Maximum character count.
+     */
+    maxLength?: number;
 
-  /**
-   * TR: En az bir büyük harf zorunlu mu?
-   * EN: Is at least one uppercase letter required?
-   * @default false
-   */
-  requireUppercase?: boolean;
+    /**
+     * TR: En az bir büyük harf zorunlu mu?
+     * EN: Is at least one uppercase letter required?
+     * @default false
+     */
+    requireUppercase?: boolean;
 
-  /**
-   * TR: En az bir küçük harf zorunlu mu?
-   * EN: Is at least one lowercase letter required?
-   * @default false
-   */
-  requireLowercase?: boolean;
+    /**
+     * TR: En az bir küçük harf zorunlu mu?
+     * EN: Is at least one lowercase letter required?
+     * @default false
+     */
+    requireLowercase?: boolean;
 
-  /**
-   * TR: En az bir rakam zorunlu mu?
-   * EN: Is at least one number required?
-   * @default false
-   */
-  requireNumber?: boolean;
+    /**
+     * TR: En az bir rakam zorunlu mu?
+     * EN: Is at least one number required?
+     * @default false
+     */
+    requireNumber?: boolean;
 
-  /**
-   * TR: En az bir özel karakter zorunlu mu?
-   * EN: Is at least one special character required?
-   * @default false
-   */
-  requireSpecial?: boolean;
+    /**
+     * TR: En az bir özel karakter zorunlu mu?
+     * EN: Is at least one special character required?
+     * @default false
+     */
+    requireSpecial?: boolean;
 
-  /**
-   * TR: Özel karakter seti. Varsayılan: !@#$%^&*()_+-=[]{}|;:,.<>?
-   * EN: Special character set. Default: !@#$%^&*()_+-=[]{}|;:,.<>?
-   */
-  specialChars?: string;
+    /**
+     * TR: Özel karakter seti. Varsayılan: !@#$%^&*()_+-=[]{}|;:,.<>?
+     * EN: Special character set. Default: !@#$%^&*()_+-=[]{}|;:,.<>?
+     */
+    specialChars?: string;
 
-  /**
-   * TR: Şifre gücü göstergesi aktif mi?
-   * EN: Is password strength indicator active?
-   * @default true
-   */
-  showStrength?: boolean;
+    /**
+     * TR: Şifre gücü göstergesi aktif mi?
+     * EN: Is password strength indicator active?
+     * @default true
+     */
+    showStrength?: boolean;
 }
 
 /**
@@ -126,104 +126,104 @@ export type PasswordStrength = 'weak' | 'fair' | 'good' | 'strong';
  * ```
  */
 export class PasswordField extends BaseField<string> {
-  private readonly DEFAULT_MIN_LENGTH = 8;
-  private readonly DEFAULT_SPECIAL_CHARS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+    private readonly DEFAULT_MIN_LENGTH = 8;
+    private readonly DEFAULT_SPECIAL_CHARS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
-  constructor(
-    name: string,
-    label: string,
-    public override readonly config: PasswordFieldConfig = {}
-  ) {
-    super(name, label, config);
-  }
-
-  /**
-   * TR: Şifre validasyonu için Zod şemasını oluşturur.
-   * EN: Creates Zod schema for password validation.
-   */
-  schema(): z.ZodType<string> {
-    const minLen = this.config.minLength ?? this.DEFAULT_MIN_LENGTH;
-    const specialChars = this.config.specialChars ?? this.DEFAULT_SPECIAL_CHARS;
-    const escapedSpecialChars = specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-    let base = z.string().min(minLen, `En az ${minLen} karakter olmalıdır`);
-
-    if (this.config.maxLength !== undefined) {
-      base = base.max(this.config.maxLength, `En fazla ${this.config.maxLength} karakter olabilir`);
+    constructor(
+        name: string,
+        label: string,
+        public override readonly config: PasswordFieldConfig = {}
+    ) {
+        super(name, label, config);
     }
 
-    if (this.config.requireUppercase) {
-      base = base.regex(/[A-Z]/, 'En az bir büyük harf içermelidir');
+    /**
+     * TR: Şifre validasyonu için Zod şemasını oluşturur.
+     * EN: Creates Zod schema for password validation.
+     */
+    schema(): z.ZodType<string> {
+        const minLen = this.config.minLength ?? this.DEFAULT_MIN_LENGTH;
+        const specialChars = this.config.specialChars ?? this.DEFAULT_SPECIAL_CHARS;
+        const escapedSpecialChars = specialChars.replace(/[-.*+?^${}()|[\]\\]/g, '\\$&');
+
+        let base = z.string().min(minLen, t('password.min', { min: minLen }));
+
+        if (this.config.maxLength !== undefined) {
+            base = base.max(this.config.maxLength, t('password.max', { max: this.config.maxLength }));
+        }
+
+        if (this.config.requireUppercase) {
+            base = base.regex(/[A-Z]/, t('password.uppercase'));
+        }
+
+        if (this.config.requireLowercase) {
+            base = base.regex(/[a-z]/, t('password.lowercase'));
+        }
+
+        if (this.config.requireNumber) {
+            base = base.regex(/[0-9]/, t('password.number'));
+        }
+
+        if (this.config.requireSpecial) {
+            base = base.regex(
+                new RegExp(`[${escapedSpecialChars}]`),
+                t('password.special')
+            );
+        }
+
+        return this.applyRequired(base);
     }
 
-    if (this.config.requireLowercase) {
-      base = base.regex(/[a-z]/, 'En az bir küçük harf içermelidir');
+    /**
+     * TR: Şifreyi maskeli olarak gösterir.
+     * EN: Displays password as masked.
+     */
+    override present(value: string | null): string {
+        if (value == null || value === '') return '-';
+        return '••••••••';
     }
 
-    if (this.config.requireNumber) {
-      base = base.regex(/[0-9]/, 'En az bir rakam içermelidir');
+    /**
+     * TR: Şifre gücünü hesaplar.
+     * EN: Calculates password strength.
+     *
+     * @param value - TR: Şifre değeri / EN: Password value
+     * @returns TR: Şifre gücü seviyesi / EN: Password strength level
+     */
+    calculateStrength(value: string | null): PasswordStrength {
+        if (!value || value.length === 0) return 'weak';
+
+        let score = 0;
+
+        // Uzunluk puanı
+        if (value.length >= 8) score++;
+        if (value.length >= 12) score++;
+        if (value.length >= 16) score++;
+
+        // Karakter çeşitliliği
+        if (/[a-z]/.test(value)) score++;
+        if (/[A-Z]/.test(value)) score++;
+        if (/[0-9]/.test(value)) score++;
+        if (/[^a-zA-Z0-9]/.test(value)) score++;
+
+        if (score <= 2) return 'weak';
+        if (score <= 4) return 'fair';
+        if (score <= 6) return 'good';
+        return 'strong';
     }
 
-    if (this.config.requireSpecial) {
-      base = base.regex(
-        new RegExp(`[${escapedSpecialChars}]`),
-        'En az bir özel karakter içermelidir'
-      );
+    /**
+     * TR: Şifre gücü yüzdesini döndürür (0-100).
+     * EN: Returns password strength percentage (0-100).
+     */
+    getStrengthPercentage(value: string | null): number {
+        const strength = this.calculateStrength(value);
+        const map: Record<PasswordStrength, number> = {
+            weak: 25,
+            fair: 50,
+            good: 75,
+            strong: 100,
+        };
+        return map[strength];
     }
-
-    return this.applyRequired(base);
-  }
-
-  /**
-   * TR: Şifreyi maskeli olarak gösterir.
-   * EN: Displays password as masked.
-   */
-  override present(value: string | null): string {
-    if (value == null || value === '') return '-';
-    return '••••••••';
-  }
-
-  /**
-   * TR: Şifre gücünü hesaplar.
-   * EN: Calculates password strength.
-   *
-   * @param value - TR: Şifre değeri / EN: Password value
-   * @returns TR: Şifre gücü seviyesi / EN: Password strength level
-   */
-  calculateStrength(value: string | null): PasswordStrength {
-    if (!value || value.length === 0) return 'weak';
-
-    let score = 0;
-
-    // Uzunluk puanı
-    if (value.length >= 8) score++;
-    if (value.length >= 12) score++;
-    if (value.length >= 16) score++;
-
-    // Karakter çeşitliliği
-    if (/[a-z]/.test(value)) score++;
-    if (/[A-Z]/.test(value)) score++;
-    if (/[0-9]/.test(value)) score++;
-    if (/[^a-zA-Z0-9]/.test(value)) score++;
-
-    if (score <= 2) return 'weak';
-    if (score <= 4) return 'fair';
-    if (score <= 6) return 'good';
-    return 'strong';
-  }
-
-  /**
-   * TR: Şifre gücü yüzdesini döndürür (0-100).
-   * EN: Returns password strength percentage (0-100).
-   */
-  getStrengthPercentage(value: string | null): number {
-    const strength = this.calculateStrength(value);
-    const map: Record<PasswordStrength, number> = {
-      weak: 25,
-      fair: 50,
-      good: 75,
-      strong: 100,
-    };
-    return map[strength];
-  }
 }

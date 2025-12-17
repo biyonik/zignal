@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseField } from './base.field';
-import { FieldConfig } from '../core';
+import { FieldConfig, t } from '../core';
 
 /**
  * @fileoverview
@@ -19,38 +19,38 @@ import { FieldConfig } from '../core';
  * EN: Extended configuration options for UrlField.
  */
 export interface UrlFieldConfig extends FieldConfig {
-  /**
-   * TR: İzin verilen protokoller.
-   * EN: Allowed protocols.
-   * @default ['http', 'https']
-   */
-  allowedProtocols?: string[];
+    /**
+     * TR: İzin verilen protokoller.
+     * EN: Allowed protocols.
+     * @default ['http', 'https']
+     */
+    allowedProtocols?: string[];
 
-  /**
-   * TR: HTTPS zorunlu mu?
-   * EN: Is HTTPS required?
-   * @default false
-   */
-  requireHttps?: boolean;
+    /**
+     * TR: HTTPS zorunlu mu?
+     * EN: Is HTTPS required?
+     * @default false
+     */
+    requireHttps?: boolean;
 
-  /**
-   * TR: İzin verilen domainler. Belirtilirse sadece bu domainler kabul edilir.
-   * EN: Allowed domains. If specified, only these domains are accepted.
-   */
-  allowedDomains?: string[];
+    /**
+     * TR: İzin verilen domainler. Belirtilirse sadece bu domainler kabul edilir.
+     * EN: Allowed domains. If specified, only these domains are accepted.
+     */
+    allowedDomains?: string[];
 
-  /**
-   * TR: Engellenen domainler.
-   * EN: Blocked domains.
-   */
-  blockedDomains?: string[];
+    /**
+     * TR: Engellenen domainler.
+     * EN: Blocked domains.
+     */
+    blockedDomains?: string[];
 
-  /**
-   * TR: Path zorunlu mu? (örn: example.com/path)
-   * EN: Is path required? (e.g., example.com/path)
-   * @default false
-   */
-  requirePath?: boolean;
+    /**
+     * TR: Path zorunlu mu? (örn: example.com/path)
+     * EN: Is path required? (e.g., example.com/path)
+     * @default false
+     */
+    requirePath?: boolean;
 }
 
 /**
@@ -96,138 +96,138 @@ export interface UrlFieldConfig extends FieldConfig {
  * ```
  */
 export class UrlField extends BaseField<string> {
-  private readonly DEFAULT_PROTOCOLS = ['http', 'https'];
+    private readonly DEFAULT_PROTOCOLS = ['http', 'https'];
 
-  constructor(
-    name: string,
-    label: string,
-    public override readonly config: UrlFieldConfig = {}
-  ) {
-    super(name, label, config);
-  }
+    constructor(
+        name: string,
+        label: string,
+        public override readonly config: UrlFieldConfig = {}
+    ) {
+        super(name, label, config);
+    }
 
-  /**
-   * TR: URL validasyonu için Zod şemasını oluşturur.
-   * EN: Creates Zod schema for URL validation.
-   */
-  schema(): z.ZodType<string> {
-    let base: z.ZodType<string> = z.string().url('Geçerli bir URL giriniz');
+    /**
+     * TR: URL validasyonu için Zod şemasını oluşturur.
+     * EN: Creates Zod schema for URL validation.
+     */
+    schema(): z.ZodType<string> {
+        let base: z.ZodType<string> = z.string().url(t('string.url'));
 
-    // TR: Protokol kontrolü
-    // EN: Protocol check
-    const allowedProtocols = this.config.requireHttps
-      ? ['https']
-      : (this.config.allowedProtocols ?? this.DEFAULT_PROTOCOLS);
+        // TR: Protokol kontrolü
+        // EN: Protocol check
+        const allowedProtocols = this.config.requireHttps
+            ? ['https']
+            : (this.config.allowedProtocols ?? this.DEFAULT_PROTOCOLS);
 
-    base = base.refine(
-      (url) => {
-        try {
-          const parsed = new URL(url);
-          const protocol = parsed.protocol.replace(':', '');
-          return allowedProtocols.includes(protocol);
-        } catch {
-          return false;
+        base = base.refine(
+            (url) => {
+                try {
+                    const parsed = new URL(url);
+                    const protocol = parsed.protocol.replace(':', '');
+                    return allowedProtocols.includes(protocol);
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: this.config.requireHttps
+                    ? 'URL HTTPS olmalıdır'
+                    : `İzin verilen protokoller: ${allowedProtocols.join(', ')}`
+            }
+        );
+
+        // TR: Domain kontrolü
+        // EN: Domain check
+        if (this.config.allowedDomains?.length) {
+            const allowed = this.config.allowedDomains.map(d => d.toLowerCase());
+            base = base.refine(
+                (url) => {
+                    const domain = this.extractDomain(url);
+                    return domain ? allowed.includes(domain.toLowerCase()) : false;
+                },
+                { message: `İzin verilen domainler: ${this.config.allowedDomains.join(', ')}` }
+            );
         }
-      },
-      {
-        message: this.config.requireHttps
-          ? 'URL HTTPS olmalıdır'
-          : `İzin verilen protokoller: ${allowedProtocols.join(', ')}`
-      }
-    );
 
-    // TR: Domain kontrolü
-    // EN: Domain check
-    if (this.config.allowedDomains?.length) {
-      const allowed = this.config.allowedDomains.map(d => d.toLowerCase());
-      base = base.refine(
-        (url) => {
-          const domain = this.extractDomain(url);
-          return domain ? allowed.includes(domain.toLowerCase()) : false;
-        },
-        { message: `İzin verilen domainler: ${this.config.allowedDomains.join(', ')}` }
-      );
+        if (this.config.blockedDomains?.length) {
+            const blocked = this.config.blockedDomains.map(d => d.toLowerCase());
+            base = base.refine(
+                (url) => {
+                    const domain = this.extractDomain(url);
+                    return domain ? !blocked.includes(domain.toLowerCase()) : true;
+                },
+                { message: 'Bu domain kabul edilmiyor' }
+            );
+        }
+
+        // TR: Path kontrolü
+        // EN: Path check
+        if (this.config.requirePath) {
+            base = base.refine(
+                (url) => {
+                    try {
+                        const parsed = new URL(url);
+                        return parsed.pathname.length > 1; // "/" dışında bir path olmalı
+                    } catch {
+                        return false;
+                    }
+                },
+                { message: 'URL bir path içermelidir' }
+            );
+        }
+
+        return this.applyRequired(base);
     }
 
-    if (this.config.blockedDomains?.length) {
-      const blocked = this.config.blockedDomains.map(d => d.toLowerCase());
-      base = base.refine(
-        (url) => {
-          const domain = this.extractDomain(url);
-          return domain ? !blocked.includes(domain.toLowerCase()) : true;
-        },
-        { message: 'Bu domain kabul edilmiyor' }
-      );
-    }
-
-    // TR: Path kontrolü
-    // EN: Path check
-    if (this.config.requirePath) {
-      base = base.refine(
-        (url) => {
-          try {
+    /**
+     * TR: URL'den domain'i çıkarır.
+     * EN: Extracts domain from URL.
+     */
+    private extractDomain(url: string): string | null {
+        try {
             const parsed = new URL(url);
-            return parsed.pathname.length > 1; // "/" dışında bir path olmalı
-          } catch {
-            return false;
-          }
-        },
-        { message: 'URL bir path içermelidir' }
-      );
+            return parsed.hostname;
+        } catch {
+            return null;
+        }
     }
 
-    return this.applyRequired(base);
-  }
+    /**
+     * TR: URL'i normalize eder (trailing slash kaldır).
+     * EN: Normalizes URL (remove trailing slash).
+     */
+    normalize(value: string | null): string | null {
+        if (!value) return null;
+        let url = value.trim();
 
-  /**
-   * TR: URL'den domain'i çıkarır.
-   * EN: Extracts domain from URL.
-   */
-  private extractDomain(url: string): string | null {
-    try {
-      const parsed = new URL(url);
-      return parsed.hostname;
-    } catch {
-      return null;
-    }
-  }
+        // TR: Trailing slash kaldır (path yoksa)
+        // EN: Remove trailing slash (if no path)
+        try {
+            const parsed = new URL(url);
+            if (parsed.pathname === '/') {
+                url = url.replace(/\/$/, '');
+            }
+        } catch {
+            // Invalid URL, return as is
+        }
 
-  /**
-   * TR: URL'i normalize eder (trailing slash kaldır).
-   * EN: Normalizes URL (remove trailing slash).
-   */
-  normalize(value: string | null): string | null {
-    if (!value) return null;
-    let url = value.trim();
-
-    // TR: Trailing slash kaldır (path yoksa)
-    // EN: Remove trailing slash (if no path)
-    try {
-      const parsed = new URL(url);
-      if (parsed.pathname === '/') {
-        url = url.replace(/\/$/, '');
-      }
-    } catch {
-      // Invalid URL, return as is
+        return url;
     }
 
-    return url;
-  }
+    /**
+     * TR: URL'in kısa gösterimini döndürür.
+     * EN: Returns short display of URL.
+     */
+    override present(value: string | null): string {
+        if (!value) return '-';
 
-  /**
-   * TR: URL'in kısa gösterimini döndürür.
-   * EN: Returns short display of URL.
-   */
-  override present(value: string | null): string {
-    if (!value) return '-';
-
-    try {
-      const parsed = new URL(value);
-      // TR: Protokol olmadan göster
-      // EN: Display without protocol
-      return parsed.hostname + (parsed.pathname !== '/' ? parsed.pathname : '');
-    } catch {
-      return value;
+        try {
+            const parsed = new URL(value);
+            // TR: Protokol olmadan göster
+            // EN: Display without protocol
+            return parsed.hostname + (parsed.pathname !== '/' ? parsed.pathname : '');
+        } catch {
+            return value;
+        }
     }
-  }
 }

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2025-12-17
+## [0.1.0] - 2024-12-17
 
 ### Added
 
@@ -78,6 +78,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `createEmailValidator()` factory
     - `createUsernameValidator()` factory
     - `createUniquenessValidator()` generic factory
+
+- `I18nService` - Multi-language validation message support
+    - Signal-based reactive locale management
+    - Turkish (tr) and English (en) built-in messages
+    - Placeholder interpolation ({min}, {max}, etc.)
+    - Custom locale/message support via `addLocale()`, `addMessages()`
+    - Browser locale detection via `detectBrowserLocale()`
+    - Helper functions: `t()`, `setLocale()`, `getLocale()`, `getI18n()`
+    - All field validation messages now use i18n
+    - Fallback to Turkish if message not found in current locale
+
+### Changed
+- All field classes now use i18n for validation messages instead of hard-coded Turkish strings
+- StringField, NumberField, DateField, BooleanField, PasswordField, SelectField, MultiselectField, TextareaField, EmailField, UrlField, ArrayField, FileField, JsonField all updated
 
 ### Planned
 - Angular Material UI adapter

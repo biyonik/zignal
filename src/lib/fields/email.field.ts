@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseField } from './base.field';
-import { FieldConfig } from '../core';
+import {FieldConfig, t} from '../core';
 
 /**
  * @fileoverview
@@ -19,35 +19,35 @@ import { FieldConfig } from '../core';
  * EN: Extended configuration options for EmailField.
  */
 export interface EmailFieldConfig extends FieldConfig {
-  /**
-   * TR: İzin verilen domain listesi. Belirtilirse sadece bu domainler kabul edilir.
-   * EN: List of allowed domains. If specified, only these domains are accepted.
-   *
-   * @example ['gmail.com', 'outlook.com', 'company.com']
-   */
-  allowedDomains?: string[];
+    /**
+     * TR: İzin verilen domain listesi. Belirtilirse sadece bu domainler kabul edilir.
+     * EN: List of allowed domains. If specified, only these domains are accepted.
+     *
+     * @example ['gmail.com', 'outlook.com', 'company.com']
+     */
+    allowedDomains?: string[];
 
-  /**
-   * TR: Engellenen domain listesi.
-   * EN: List of blocked domains.
-   *
-   * @example ['tempmail.com', 'throwaway.com']
-   */
-  blockedDomains?: string[];
+    /**
+     * TR: Engellenen domain listesi.
+     * EN: List of blocked domains.
+     *
+     * @example ['tempmail.com', 'throwaway.com']
+     */
+    blockedDomains?: string[];
 
-  /**
-   * TR: Tek kullanımlık (disposable) e-posta adreslerini engelle.
-   * EN: Block disposable email addresses.
-   * @default false
-   */
-  blockDisposable?: boolean;
+    /**
+     * TR: Tek kullanımlık (disposable) e-posta adreslerini engelle.
+     * EN: Block disposable email addresses.
+     * @default false
+     */
+    blockDisposable?: boolean;
 
-  /**
-   * TR: E-postayı küçük harfe dönüştür.
-   * EN: Convert email to lowercase.
-   * @default true
-   */
-  lowercase?: boolean;
+    /**
+     * TR: E-postayı küçük harfe dönüştür.
+     * EN: Convert email to lowercase.
+     * @default true
+     */
+    lowercase?: boolean;
 }
 
 /**
@@ -55,16 +55,16 @@ export interface EmailFieldConfig extends FieldConfig {
  * EN: Common disposable email domains.
  */
 const DISPOSABLE_DOMAINS = [
-  'tempmail.com',
-  'throwaway.com',
-  'guerrillamail.com',
-  'mailinator.com',
-  '10minutemail.com',
-  'temp-mail.org',
-  'fakeinbox.com',
-  'trashmail.com',
-  'yopmail.com',
-  'getnada.com',
+    'tempmail.com',
+    'throwaway.com',
+    'guerrillamail.com',
+    'mailinator.com',
+    '10minutemail.com',
+    'temp-mail.org',
+    'fakeinbox.com',
+    'trashmail.com',
+    'yopmail.com',
+    'getnada.com',
 ];
 
 /**
@@ -102,95 +102,97 @@ const DISPOSABLE_DOMAINS = [
  * ```
  */
 export class EmailField extends BaseField<string> {
-  constructor(
-    name: string,
-    label: string,
-    public override readonly config: EmailFieldConfig = {}
-  ) {
-    super(name, label, config);
-  }
-
-  /**
-   * TR: E-posta validasyonu için Zod şemasını oluşturur.
-   * EN: Creates Zod schema for email validation.
-   */
-  schema(): z.ZodType<string> {
-    let base: z.ZodType<string> = z.string().email('Geçerli bir e-posta adresi giriniz');
-
-    // TR: Domain kontrolü
-    // EN: Domain check
-    if (this.config.allowedDomains?.length) {
-      const allowed = this.config.allowedDomains;
-      base = base.refine(
-        (email) => {
-          const domain = this.extractDomain(email);
-          return domain ? allowed.includes(domain.toLowerCase()) : false;
-        },
-        { message: `İzin verilen domainler: ${this.config.allowedDomains.join(', ')}` }
-      );
+    constructor(
+        name: string,
+        label: string,
+        public override readonly config: EmailFieldConfig = {}
+    ) {
+        super(name, label, config);
     }
 
-    if (this.config.blockedDomains?.length) {
-      const blocked = this.config.blockedDomains;
-      base = base.refine(
-        (email) => {
-          const domain = this.extractDomain(email);
-          return domain ? !blocked.includes(domain.toLowerCase()) : true;
-        },
-        { message: 'Bu e-posta domaini kabul edilmiyor' }
-      );
+    /**
+     * TR: E-posta validasyonu için Zod şemasını oluşturur.
+     * EN: Creates Zod schema for email validation.
+     */
+    schema(): z.ZodType<string> {
+        let base: z.ZodType<string> = z.string().email(t('string.email'));
+
+        // TR: Domain kontrolü
+        // EN: Domain check
+        if (this.config.allowedDomains?.length) {
+            const allowed = this.config.allowedDomains;
+            base = base.refine(
+                (email) => {
+                    const domain = this.extractDomain(email);
+                    return domain ? allowed.includes(domain.toLowerCase()) : false;
+                },
+                {
+                    message: t('email.allowedDomains', { domains: allowed.join(', ') })
+                }
+            );
+        }
+
+        if (this.config.blockedDomains?.length) {
+            const blocked = this.config.blockedDomains;
+            base = base.refine(
+                (email) => {
+                    const domain = this.extractDomain(email);
+                    return domain ? !blocked.includes(domain.toLowerCase()) : true;
+                },
+                { message: t('email.blockedDomain') }
+            );
+        }
+
+        if (this.config.blockDisposable) {
+            base = base.refine(
+                (email) => {
+                    const domain = this.extractDomain(email);
+                    return domain ? !DISPOSABLE_DOMAINS.includes(domain.toLowerCase()) : true;
+                },
+                { message: t('email.blockDisposable') }
+            );
+        }
+
+        return this.applyRequired(base);
     }
 
-    if (this.config.blockDisposable) {
-      base = base.refine(
-        (email) => {
-          const domain = this.extractDomain(email);
-          return domain ? !DISPOSABLE_DOMAINS.includes(domain.toLowerCase()) : true;
-        },
-        { message: 'Tek kullanımlık e-posta adresleri kabul edilmiyor' }
-      );
+    /**
+     * TR: E-posta adresinden domain'i çıkarır.
+     * EN: Extracts domain from email address.
+     */
+    private extractDomain(email: string): string | null {
+        const parts = email.split('@');
+        return parts.length === 2 ? parts[1] : null;
     }
 
-    return this.applyRequired(base);
-  }
+    /**
+     * TR: E-postayı normalize eder (küçük harf).
+     * EN: Normalizes email (lowercase).
+     */
+    normalize(value: string | null): string | null {
+        if (!value) return null;
+        return this.config.lowercase !== false ? value.toLowerCase().trim() : value.trim();
+    }
 
-  /**
-   * TR: E-posta adresinden domain'i çıkarır.
-   * EN: Extracts domain from email address.
-   */
-  private extractDomain(email: string): string | null {
-    const parts = email.split('@');
-    return parts.length === 2 ? parts[1] : null;
-  }
+    /**
+     * TR: Dışa aktarım için e-postayı normalize eder.
+     * EN: Normalizes email for export.
+     */
+    override toExport(value: string | null): string | null {
+        return this.normalize(value);
+    }
 
-  /**
-   * TR: E-postayı normalize eder (küçük harf).
-   * EN: Normalizes email (lowercase).
-   */
-  normalize(value: string | null): string | null {
-    if (!value) return null;
-    return this.config.lowercase !== false ? value.toLowerCase().trim() : value.trim();
-  }
+    /**
+     * TR: İçe aktarımda e-postayı normalize eder.
+     * EN: Normalizes email on import.
+     */
+    override fromImport(raw: unknown): string | null {
+        if (raw == null) return null;
+        if (typeof raw !== 'string') return null;
 
-  /**
-   * TR: Dışa aktarım için e-postayı normalize eder.
-   * EN: Normalizes email for export.
-   */
-  override toExport(value: string | null): string | null {
-    return this.normalize(value);
-  }
+        const normalized = this.normalize(raw);
+        if (!normalized) return null;
 
-  /**
-   * TR: İçe aktarımda e-postayı normalize eder.
-   * EN: Normalizes email on import.
-   */
-  override fromImport(raw: unknown): string | null {
-    if (raw == null) return null;
-    if (typeof raw !== 'string') return null;
-
-    const normalized = this.normalize(raw);
-    if (!normalized) return null;
-
-    return this.schema().safeParse(normalized).success ? normalized : null;
-  }
+        return this.schema().safeParse(normalized).success ? normalized : null;
+    }
 }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseField } from './base.field';
-import { FieldConfig } from '../core';
+import { FieldConfig, t } from '../core';
 import { SelectOption } from './select.field';
 
 /**
@@ -24,44 +24,44 @@ import { SelectOption } from './select.field';
  *               EN: Type of option values
  */
 export interface MultiselectFieldConfig<T = unknown> extends FieldConfig {
-  /**
-   * TR: Seçilebilir seçenekler listesi.
-   * EN: List of selectable options.
-   */
-  options: SelectOption<T>[];
+    /**
+     * TR: Seçilebilir seçenekler listesi.
+     * EN: List of selectable options.
+     */
+    options: SelectOption<T>[];
 
-  /**
-   * TR: Minimum seçim sayısı.
-   * EN: Minimum selection count.
-   */
-  minSelections?: number;
+    /**
+     * TR: Minimum seçim sayısı.
+     * EN: Minimum selection count.
+     */
+    minSelections?: number;
 
-  /**
-   * TR: Maksimum seçim sayısı.
-   * EN: Maximum selection count.
-   */
-  maxSelections?: number;
+    /**
+     * TR: Maksimum seçim sayısı.
+     * EN: Maximum selection count.
+     */
+    maxSelections?: number;
 
-  /**
-   * TR: Aranabilir mi?
-   * EN: Is searchable?
-   * @default false
-   */
-  searchable?: boolean;
+    /**
+     * TR: Aranabilir mi?
+     * EN: Is searchable?
+     * @default false
+     */
+    searchable?: boolean;
 
-  /**
-   * TR: Tümünü seç butonu gösterilsin mi?
-   * EN: Should select all button be shown?
-   * @default false
-   */
-  showSelectAll?: boolean;
+    /**
+     * TR: Tümünü seç butonu gösterilsin mi?
+     * EN: Should select all button be shown?
+     * @default false
+     */
+    showSelectAll?: boolean;
 
-  /**
-   * TR: Chip olarak mı gösterilsin?
-   * EN: Should be shown as chips?
-   * @default true
-   */
-  showAsChips?: boolean;
+    /**
+     * TR: Chip olarak mı gösterilsin?
+     * EN: Should be shown as chips?
+     * @default true
+     */
+    showAsChips?: boolean;
 }
 
 /**
@@ -119,207 +119,207 @@ export interface MultiselectFieldConfig<T = unknown> extends FieldConfig {
  * ```
  */
 export class MultiselectField<T = string> extends BaseField<T[]> {
-  /**
-   * TR: MultiselectField constructor'ı.
-   *
-   * EN: MultiselectField constructor.
-   *
-   * @param name - TR: Alanın benzersiz tanımlayıcısı
-   *               EN: Unique identifier of the field
-   * @param label - TR: Kullanıcıya gösterilecek etiket
-   *                EN: Label to display to user
-   * @param config - TR: Multiselect'e özgü yapılandırma seçenekleri
-   *                 EN: Multiselect-specific configuration options
-   */
-  constructor(
-    name: string,
-    label: string,
-    public override readonly config: MultiselectFieldConfig<T>
-  ) {
-    super(name, label, config);
-  }
-
-  /**
-   * TR: Multiselect validasyonu için Zod şemasını oluşturur.
-   * Seçim sayısı ve geçerli değer kontrolü yapar.
-   *
-   * EN: Creates Zod schema for multiselect validation.
-   * Validates selection count and valid values.
-   *
-   * @returns TR: Yapılandırılmış Zod array şeması
-   *          EN: Configured Zod array schema
-   */
-  schema(): z.ZodType<T[]> {
-    const validValues = this.config.options
-      .filter((opt) => !opt.disabled)
-      .map((opt) => opt.value);
-
-    // TR: Her elemanın geçerli olduğunu kontrol et
-    // EN: Check that each element is valid
-    let base = z.array(
-      z.custom<T>(
-        (val) => validValues.includes(val as T),
-        { message: 'Geçersiz seçenek' }
-      )
-    );
-
-    // TR: Minimum seçim sayısı
-    // EN: Minimum selection count
-    if (this.config.minSelections !== undefined) {
-      base = base.min(
-        this.config.minSelections,
-        `En az ${this.config.minSelections} seçenek seçmelisiniz`
-      );
+    /**
+     * TR: MultiselectField constructor'ı.
+     *
+     * EN: MultiselectField constructor.
+     *
+     * @param name - TR: Alanın benzersiz tanımlayıcısı
+     *               EN: Unique identifier of the field
+     * @param label - TR: Kullanıcıya gösterilecek etiket
+     *                EN: Label to display to user
+     * @param config - TR: Multiselect'e özgü yapılandırma seçenekleri
+     *                 EN: Multiselect-specific configuration options
+     */
+    constructor(
+        name: string,
+        label: string,
+        public override readonly config: MultiselectFieldConfig<T>
+    ) {
+        super(name, label, config);
     }
 
-    // TR: Maksimum seçim sayısı
-    // EN: Maximum selection count
-    if (this.config.maxSelections !== undefined) {
-      base = base.max(
-        this.config.maxSelections,
-        `En fazla ${this.config.maxSelections} seçenek seçebilirsiniz`
-      );
-    }
+    /**
+     * TR: Multiselect validasyonu için Zod şemasını oluşturur.
+     * Seçim sayısı ve geçerli değer kontrolü yapar.
+     *
+     * EN: Creates Zod schema for multiselect validation.
+     * Validates selection count and valid values.
+     *
+     * @returns TR: Yapılandırılmış Zod array şeması
+     *          EN: Configured Zod array schema
+     */
+    schema(): z.ZodType<T[]> {
+        const validValues = this.config.options
+            .filter((opt) => !opt.disabled)
+            .map((opt) => opt.value);
 
-    return this.applyRequired(base) as z.ZodType<T[]>;
-  }
-
-  /**
-   * TR: Seçili değerlerin label'larını virgülle ayırarak gösterir.
-   *
-   * EN: Displays labels of selected values separated by comma.
-   *
-   * @param value - TR: Seçili değerler dizisi
-   *                EN: Array of selected values
-   * @returns TR: Virgülle ayrılmış label'lar
-   *          EN: Comma-separated labels
-   */
-  override present(value: T[] | null): string {
-    if (value == null || value.length === 0) return '-';
-
-    const labels = value.map((v) => {
-      const option = this.config.options.find((opt) => opt.value === v);
-      return option?.label ?? String(v);
-    });
-
-    return labels.join(', ');
-  }
-
-  /**
-   * TR: Dış kaynaktan gelen veriyi T[] dizisine dönüştürür.
-   *
-   * EN: Converts data from external source to T[] array.
-   *
-   * @param raw - TR: Ham veri
-   *              EN: Raw data
-   * @returns TR: Değer dizisi veya null
-   *          EN: Value array or null
-   */
-  override fromImport(raw: unknown): T[] | null {
-    if (raw == null) return null;
-
-    // TR: Zaten dizi ise
-    // EN: If already array
-    if (Array.isArray(raw)) {
-      const validValues: T[] = [];
-      for (const item of raw) {
-        const option = this.config.options.find(
-          (opt) => opt.value === item || opt.label === item
+        // TR: Her elemanın geçerli olduğunu kontrol et
+        // EN: Check that each element is valid
+        let base = z.array(
+            z.custom<T>(
+                (val) => validValues.includes(val as T),
+                { message: t('select.invalid') }
+            )
         );
-        if (option) {
-          validValues.push(option.value);
+
+        // TR: Minimum seçim sayısı
+        // EN: Minimum selection count
+        if (this.config.minSelections !== undefined) {
+            base = base.min(
+                this.config.minSelections,
+                t('multiselect.min', { min: this.config.minSelections })
+            );
         }
-      }
-      return validValues.length > 0 ? validValues : null;
+
+        // TR: Maksimum seçim sayısı
+        // EN: Maximum selection count
+        if (this.config.maxSelections !== undefined) {
+            base = base.max(
+                this.config.maxSelections,
+                t('multiselect.max', { max: this.config.maxSelections })
+            );
+        }
+
+        return this.applyRequired(base) as z.ZodType<T[]>;
     }
 
-    // TR: Virgülle ayrılmış string
-    // EN: Comma-separated string
-    if (typeof raw === 'string') {
-      const items = raw.split(',').map((s) => s.trim());
-      return this.fromImport(items);
+    /**
+     * TR: Seçili değerlerin label'larını virgülle ayırarak gösterir.
+     *
+     * EN: Displays labels of selected values separated by comma.
+     *
+     * @param value - TR: Seçili değerler dizisi
+     *                EN: Array of selected values
+     * @returns TR: Virgülle ayrılmış label'lar
+     *          EN: Comma-separated labels
+     */
+    override present(value: T[] | null): string {
+        if (value == null || value.length === 0) return '-';
+
+        const labels = value.map((v) => {
+            const option = this.config.options.find((opt) => opt.value === v);
+            return option?.label ?? String(v);
+        });
+
+        return labels.join(', ');
     }
 
-    return null;
-  }
+    /**
+     * TR: Dış kaynaktan gelen veriyi T[] dizisine dönüştürür.
+     *
+     * EN: Converts data from external source to T[] array.
+     *
+     * @param raw - TR: Ham veri
+     *              EN: Raw data
+     * @returns TR: Değer dizisi veya null
+     *          EN: Value array or null
+     */
+    override fromImport(raw: unknown): T[] | null {
+        if (raw == null) return null;
 
-  /**
-   * TR: Filtreleme önizlemesi için kısa metin oluşturur.
-   *
-   * EN: Creates short text for filter preview.
-   *
-   * @param value - TR: Seçili değerler
-   *                EN: Selected values
-   * @returns TR: Kısa önizleme veya null
-   *          EN: Short preview or null
-   */
-  override filterPreview(value: T[] | null): string | null {
-    if (value == null || value.length === 0) return null;
+        // TR: Zaten dizi ise
+        // EN: If already array
+        if (Array.isArray(raw)) {
+            const validValues: T[] = [];
+            for (const item of raw) {
+                const option = this.config.options.find(
+                    (opt) => opt.value === item || opt.label === item
+                );
+                if (option) {
+                    validValues.push(option.value);
+                }
+            }
+            return validValues.length > 0 ? validValues : null;
+        }
 
-    if (value.length === 1) {
-      const option = this.config.options.find((opt) => opt.value === value[0]);
-      return option?.label ?? String(value[0]);
+        // TR: Virgülle ayrılmış string
+        // EN: Comma-separated string
+        if (typeof raw === 'string') {
+            const items = raw.split(',').map((s) => s.trim());
+            return this.fromImport(items);
+        }
+
+        return null;
     }
 
-    return `${value.length} seçili`;
-  }
+    /**
+     * TR: Filtreleme önizlemesi için kısa metin oluşturur.
+     *
+     * EN: Creates short text for filter preview.
+     *
+     * @param value - TR: Seçili değerler
+     *                EN: Selected values
+     * @returns TR: Kısa önizleme veya null
+     *          EN: Short preview or null
+     */
+    override filterPreview(value: T[] | null): string | null {
+        if (value == null || value.length === 0) return null;
 
-  // ===========================================================================
-  // TR: Yardımcı Metodlar
-  // EN: Helper Methods
-  // ===========================================================================
+        if (value.length === 1) {
+            const option = this.config.options.find((opt) => opt.value === value[0]);
+            return option?.label ?? String(value[0]);
+        }
 
-  /**
-   * TR: Tüm seçenekleri döndürür.
-   *
-   * EN: Returns all options.
-   */
-  getOptions(): SelectOption<T>[] {
-    return this.config.options;
-  }
+        return `${value.length} seçili`;
+    }
 
-  /**
-   * TR: Aktif (disabled olmayan) seçenekleri döndürür.
-   *
-   * EN: Returns active (not disabled) options.
-   */
-  getActiveOptions(): SelectOption<T>[] {
-    return this.config.options.filter((opt) => !opt.disabled);
-  }
+    // ===========================================================================
+    // TR: Yardımcı Metodlar
+    // EN: Helper Methods
+    // ===========================================================================
 
-  /**
-   * TR: Belirli bir değerin seçili olup olmadığını kontrol eder.
-   *
-   * EN: Checks if a specific value is selected.
-   *
-   * @param selectedValues - TR: Seçili değerler
-   *                         EN: Selected values
-   * @param value - TR: Kontrol edilecek değer
-   *                EN: Value to check
-   */
-  isSelected(selectedValues: T[], value: T): boolean {
-    return selectedValues.includes(value);
-  }
+    /**
+     * TR: Tüm seçenekleri döndürür.
+     *
+     * EN: Returns all options.
+     */
+    getOptions(): SelectOption<T>[] {
+        return this.config.options;
+    }
 
-  /**
-   * TR: Maksimum seçim sayısına ulaşılıp ulaşılmadığını kontrol eder.
-   *
-   * EN: Checks if maximum selection count has been reached.
-   *
-   * @param selectedCount - TR: Mevcut seçim sayısı
-   *                        EN: Current selection count
-   */
-  isMaxReached(selectedCount: number): boolean {
-    if (this.config.maxSelections === undefined) return false;
-    return selectedCount >= this.config.maxSelections;
-  }
+    /**
+     * TR: Aktif (disabled olmayan) seçenekleri döndürür.
+     *
+     * EN: Returns active (not disabled) options.
+     */
+    getActiveOptions(): SelectOption<T>[] {
+        return this.config.options.filter((opt) => !opt.disabled);
+    }
 
-  /**
-   * TR: Tüm aktif seçeneklerin değerlerini döndürür.
-   *
-   * EN: Returns values of all active options.
-   */
-  getAllValues(): T[] {
-    return this.getActiveOptions().map((opt) => opt.value);
-  }
+    /**
+     * TR: Belirli bir değerin seçili olup olmadığını kontrol eder.
+     *
+     * EN: Checks if a specific value is selected.
+     *
+     * @param selectedValues - TR: Seçili değerler
+     *                         EN: Selected values
+     * @param value - TR: Kontrol edilecek değer
+     *                EN: Value to check
+     */
+    isSelected(selectedValues: T[], value: T): boolean {
+        return selectedValues.includes(value);
+    }
+
+    /**
+     * TR: Maksimum seçim sayısına ulaşılıp ulaşılmadığını kontrol eder.
+     *
+     * EN: Checks if maximum selection count has been reached.
+     *
+     * @param selectedCount - TR: Mevcut seçim sayısı
+     *                        EN: Current selection count
+     */
+    isMaxReached(selectedCount: number): boolean {
+        if (this.config.maxSelections === undefined) return false;
+        return selectedCount >= this.config.maxSelections;
+    }
+
+    /**
+     * TR: Tüm aktif seçeneklerin değerlerini döndürür.
+     *
+     * EN: Returns values of all active options.
+     */
+    getAllValues(): T[] {
+        return this.getActiveOptions().map((opt) => opt.value);
+    }
 }

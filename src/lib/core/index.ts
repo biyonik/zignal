@@ -27,3 +27,6 @@ export * from './form-persistence';
 
 // Async Validation
 export * from './async-validator';
+
+// i18n
+export * from './i18n';

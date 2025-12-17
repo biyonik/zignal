@@ -23,7 +23,7 @@ describe('NumberField (Numeric Precision Master) Hard Core Tests', () => {
                 const result = schema.safeParse(5.5);
                 expect(result.success).toBe(false);
                 if (!result.success) {
-                    expect(result.error.issues[0].message).toBe('Tam sayı giriniz');
+                    expect(result.error.issues[0].message).toBe('Tam sayı olmalıdır');
                 }
             });
         });

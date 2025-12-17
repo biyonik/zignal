@@ -36,7 +36,7 @@ describe('SelectField (The Dropdown Master) Hard Core Tests', () => {
             const result = schema.safeParse('de'); // Germany listede yok
             expect(result.success).toBe(false);
             if (!result.success) {
-                expect(result.error.issues[0].message).toBe('Geçerli bir seçenek seçiniz');
+                expect(result.error.issues[0].message).toBe('Geçersiz seçenek');
             }
         });
 
@@ -46,8 +46,8 @@ describe('SelectField (The Dropdown Master) Hard Core Tests', () => {
             expect(result.success).toBe(false);
             if (!result.success) {
                 // Disabled olduğu için validValues listesine hiç girmedi,
-                // bu yüzden "Geçerli bir seçenek seçiniz" hatası almalı.
-                expect(result.error.issues[0].message).toBe('Geçerli bir seçenek seçiniz');
+                // bu yüzden "Geçersiz seçenek" hatası almalı.
+                expect(result.error.issues[0].message).toBe('Geçersiz seçenek');
             }
         });
 

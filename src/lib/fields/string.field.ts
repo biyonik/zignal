@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseField } from './base.field';
-import { FieldConfig } from '../core';
+import { FieldConfig, t } from '../core';
 
 /**
  * @fileoverview
@@ -22,41 +22,41 @@ import { FieldConfig } from '../core';
  * Contains special settings for text validation in addition to base FieldConfig.
  */
 export interface StringFieldConfig extends FieldConfig {
-  /**
-   * TR: Minimum karakter sayısı. Belirtilirse validasyonda kontrol edilir.
-   * EN: Minimum character count. Checked in validation if specified.
-   */
-  minLength?: number;
+    /**
+     * TR: Minimum karakter sayısı. Belirtilirse validasyonda kontrol edilir.
+     * EN: Minimum character count. Checked in validation if specified.
+     */
+    minLength?: number;
 
-  /**
-   * TR: Maksimum karakter sayısı. Belirtilirse validasyonda kontrol edilir.
-   * EN: Maximum character count. Checked in validation if specified.
-   */
-  maxLength?: number;
+    /**
+     * TR: Maksimum karakter sayısı. Belirtilirse validasyonda kontrol edilir.
+     * EN: Maximum character count. Checked in validation if specified.
+     */
+    maxLength?: number;
 
-  /**
-   * TR: Regex pattern. Değer bu pattern'e uymalıdır.
-   * EN: Regex pattern. Value must match this pattern.
-   */
-  pattern?: RegExp;
+    /**
+     * TR: Regex pattern. Değer bu pattern'e uymalıdır.
+     * EN: Regex pattern. Value must match this pattern.
+     */
+    pattern?: RegExp;
 
-  /**
-   * TR: Pattern uyumsuzluğunda gösterilecek hata mesajı.
-   * EN: Error message to show on pattern mismatch.
-   */
-  patternMessage?: string;
+    /**
+     * TR: Pattern uyumsuzluğunda gösterilecek hata mesajı.
+     * EN: Error message to show on pattern mismatch.
+     */
+    patternMessage?: string;
 
-  /**
-   * TR: E-posta formatı kontrolü aktif mi?
-   * EN: Is email format validation active?
-   */
-  email?: boolean;
+    /**
+     * TR: E-posta formatı kontrolü aktif mi?
+     * EN: Is email format validation active?
+     */
+    email?: boolean;
 
-  /**
-   * TR: URL formatı kontrolü aktif mi?
-   * EN: Is URL format validation active?
-   */
-  url?: boolean;
+    /**
+     * TR: URL formatı kontrolü aktif mi?
+     * EN: Is URL format validation active?
+     */
+    url?: boolean;
 }
 
 /**
@@ -102,142 +102,142 @@ export interface StringFieldConfig extends FieldConfig {
  * ```
  */
 export class StringField extends BaseField<string> {
-  /**
-   * TR: StringField constructor'ı.
-   *
-   * EN: StringField constructor.
-   *
-   * @param name - TR: Alanın benzersiz tanımlayıcısı
-   *               EN: Unique identifier of the field
-   * @param label - TR: Kullanıcıya gösterilecek etiket
-   *                EN: Label to display to user
-   * @param config - TR: String'e özgü yapılandırma seçenekleri
-   *                 EN: String-specific configuration options
-   */
-  constructor(
-    name: string,
-    label: string,
-    public override readonly config: StringFieldConfig = {}
-  ) {
-    super(name, label, config);
-  }
-
-  /**
-   * TR: String validasyonu için Zod şemasını oluşturur.
-   * Config'deki ayarlara göre dinamik olarak validasyon kuralları ekler.
-   *
-   * Uygulanan kurallar sırası:
-   * 1. Temel string tipi
-   * 2. minLength (varsa)
-   * 3. maxLength (varsa)
-   * 4. email formatı (varsa)
-   * 5. url formatı (varsa)
-   * 6. pattern (varsa)
-   * 7. required/optional (applyRequired ile)
-   *
-   * EN: Creates Zod schema for string validation.
-   * Dynamically adds validation rules based on config settings.
-   *
-   * Applied rules order:
-   * 1. Base string type
-   * 2. minLength (if set)
-   * 3. maxLength (if set)
-   * 4. email format (if set)
-   * 5. url format (if set)
-   * 6. pattern (if set)
-   * 7. required/optional (via applyRequired)
-   *
-   * @returns TR: Yapılandırılmış Zod string şeması
-   *          EN: Configured Zod string schema
-   */
-  schema(): z.ZodType<string> {
-    let base = z.string();
-
-    // TR: Minimum karakter kontrolü
-    // EN: Minimum character check
-    if (this.config.minLength !== undefined) {
-      base = base.min(
-        this.config.minLength,
-        `En az ${this.config.minLength} karakter olmalıdır`
-      );
+    /**
+     * TR: StringField constructor'ı.
+     *
+     * EN: StringField constructor.
+     *
+     * @param name - TR: Alanın benzersiz tanımlayıcısı
+     *               EN: Unique identifier of the field
+     * @param label - TR: Kullanıcıya gösterilecek etiket
+     *                EN: Label to display to user
+     * @param config - TR: String'e özgü yapılandırma seçenekleri
+     *                 EN: String-specific configuration options
+     */
+    constructor(
+        name: string,
+        label: string,
+        public override readonly config: StringFieldConfig = {}
+    ) {
+        super(name, label, config);
     }
 
-    // TR: Maksimum karakter kontrolü
-    // EN: Maximum character check
-    if (this.config.maxLength !== undefined) {
-      base = base.max(
-        this.config.maxLength,
-        `En fazla ${this.config.maxLength} karakter olabilir`
-      );
+    /**
+     * TR: String validasyonu için Zod şemasını oluşturur.
+     * Config'deki ayarlara göre dinamik olarak validasyon kuralları ekler.
+     *
+     * Uygulanan kurallar sırası:
+     * 1. Temel string tipi
+     * 2. minLength (varsa)
+     * 3. maxLength (varsa)
+     * 4. email formatı (varsa)
+     * 5. url formatı (varsa)
+     * 6. pattern (varsa)
+     * 7. required/optional (applyRequired ile)
+     *
+     * EN: Creates Zod schema for string validation.
+     * Dynamically adds validation rules based on config settings.
+     *
+     * Applied rules order:
+     * 1. Base string type
+     * 2. minLength (if set)
+     * 3. maxLength (if set)
+     * 4. email format (if set)
+     * 5. url format (if set)
+     * 6. pattern (if set)
+     * 7. required/optional (via applyRequired)
+     *
+     * @returns TR: Yapılandırılmış Zod string şeması
+     *          EN: Configured Zod string schema
+     */
+    schema(): z.ZodType<string> {
+        let base = z.string();
+
+        // TR: Minimum karakter kontrolü
+        // EN: Minimum character check
+        if (this.config.minLength !== undefined) {
+            base = base.min(
+                this.config.minLength,
+                t('string.min', { min: this.config.minLength })
+            );
+        }
+
+        // TR: Maksimum karakter kontrolü
+        // EN: Maximum character check
+        if (this.config.maxLength !== undefined) {
+            base = base.max(
+                this.config.maxLength,
+                t('string.max', { max: this.config.maxLength })
+            );
+        }
+
+        // TR: E-posta formatı kontrolü
+        // EN: Email format check
+        if (this.config.email) {
+            base = base.email(t('string.email'));
+        }
+
+        // TR: URL formatı kontrolü
+        // EN: URL format check
+        if (this.config.url) {
+            base = base.url(t('string.url'));
+        }
+
+        // TR: Regex pattern kontrolü
+        // EN: Regex pattern check
+        if (this.config.pattern) {
+            base = base.regex(
+                this.config.pattern,
+                this.config.patternMessage ?? t('string.pattern')
+            );
+        }
+
+        return this.applyRequired(base);
     }
 
-    // TR: E-posta formatı kontrolü
-    // EN: Email format check
-    if (this.config.email) {
-      base = base.email('Geçerli bir e-posta adresi giriniz');
+    /**
+     * TR: Boş string'leri de handle ederek değeri sunar.
+     *
+     * EN: Presents the value while handling empty strings.
+     *
+     * @param value - TR: Gösterilecek değer
+     *                EN: Value to display
+     * @returns TR: Kullanıcı dostu gösterim
+     *          EN: User-friendly display
+     */
+    override present(value: string | null): string {
+        if (value == null || value === '') return '-';
+        return value;
     }
 
-    // TR: URL formatı kontrolü
-    // EN: URL format check
-    if (this.config.url) {
-      base = base.url('Geçerli bir URL giriniz');
+    /**
+     * TR: Dış kaynaktan gelen veriyi string'e dönüştürür.
+     * Sayı ve boolean değerleri otomatik string'e çevirir.
+     *
+     * EN: Converts data from external source to string.
+     * Automatically converts number and boolean values to string.
+     *
+     * @param raw - TR: Ham veri
+     *              EN: Raw data
+     * @returns TR: String değer veya null
+     *          EN: String value or null
+     */
+    override fromImport(raw: unknown): string | null {
+        if (raw == null) return null;
+
+        // TR: String ise direkt kullan
+        // EN: Use directly if string
+        if (typeof raw === 'string') {
+            return this.schema().safeParse(raw).success ? raw : null;
+        }
+
+        // TR: Sayı veya boolean ise string'e çevir
+        // EN: Convert to string if number or boolean
+        if (typeof raw === 'number' || typeof raw === 'boolean') {
+            const str = String(raw);
+            return this.schema().safeParse(str).success ? str : null;
+        }
+
+        return null;
     }
-
-    // TR: Regex pattern kontrolü
-    // EN: Regex pattern check
-    if (this.config.pattern) {
-      base = base.regex(
-        this.config.pattern,
-        this.config.patternMessage ?? 'Geçersiz format'
-      );
-    }
-
-    return this.applyRequired(base);
-  }
-
-  /**
-   * TR: Boş string'leri de handle ederek değeri sunar.
-   *
-   * EN: Presents the value while handling empty strings.
-   *
-   * @param value - TR: Gösterilecek değer
-   *                EN: Value to display
-   * @returns TR: Kullanıcı dostu gösterim
-   *          EN: User-friendly display
-   */
-  override present(value: string | null): string {
-    if (value == null || value === '') return '-';
-    return value;
-  }
-
-  /**
-   * TR: Dış kaynaktan gelen veriyi string'e dönüştürür.
-   * Sayı ve boolean değerleri otomatik string'e çevirir.
-   *
-   * EN: Converts data from external source to string.
-   * Automatically converts number and boolean values to string.
-   *
-   * @param raw - TR: Ham veri
-   *              EN: Raw data
-   * @returns TR: String değer veya null
-   *          EN: String value or null
-   */
-  override fromImport(raw: unknown): string | null {
-    if (raw == null) return null;
-
-    // TR: String ise direkt kullan
-    // EN: Use directly if string
-    if (typeof raw === 'string') {
-      return this.schema().safeParse(raw).success ? raw : null;
-    }
-
-    // TR: Sayı veya boolean ise string'e çevir
-    // EN: Convert to string if number or boolean
-    if (typeof raw === 'number' || typeof raw === 'boolean') {
-      const str = String(raw);
-      return this.schema().safeParse(str).success ? str : null;
-    }
-
-    return null;
-  }
 }

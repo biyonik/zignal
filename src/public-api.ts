@@ -65,6 +65,22 @@ export {
     createEmailValidator,
     createUsernameValidator,
     createUniquenessValidator,
+
+    // i18n (Internationalization)
+    I18nService,
+    LocaleCode,
+    ValidationMessageKey,
+    MessageParams,
+    MessageDictionary,
+    TR_MESSAGES,
+    EN_MESSAGES,
+    t,
+    setLocale,
+    getLocale,
+    addMessages,
+    getI18n,
+    detectBrowserLocale,
+    useAutoLocale,
 } from './lib/core';
 
 // =============================================================================
