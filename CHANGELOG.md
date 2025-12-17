@@ -69,6 +69,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `createFormPersistence()` factory function
     - `clearAllZignalPersistence()` utility
 
+- `AsyncValidator` - API-based asynchronous validation
+    - Email/username uniqueness checks
+    - Debounce support for API call optimization
+    - LRU cache to prevent duplicate requests
+    - AbortController for request cancellation
+    - Signal-based reactive state (pending, valid, invalid)
+    - `createEmailValidator()` factory
+    - `createUsernameValidator()` factory
+    - `createUniquenessValidator()` generic factory
+
 ### Planned
 - Angular Material UI adapter
 - PrimeNG UI adapter

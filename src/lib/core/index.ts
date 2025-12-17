@@ -24,3 +24,6 @@ export * from './field-dependency';
 
 // Form Persistence (localStorage/sessionStorage)
 export * from './form-persistence';
+
+// Async Validation
+export * from './async-validator';

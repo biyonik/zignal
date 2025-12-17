@@ -56,6 +56,15 @@ export {
     StorageType,
     createFormPersistence,
     clearAllZignalPersistence,
+
+    // Async Validator (API-based validation)
+    AsyncValidator,
+    AsyncValidatorFn,
+    AsyncValidatorOptions,
+    AsyncValidationStatus,
+    createEmailValidator,
+    createUsernameValidator,
+    createUniquenessValidator,
 } from './lib/core';
 
 // =============================================================================

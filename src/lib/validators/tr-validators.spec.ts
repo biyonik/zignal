@@ -23,6 +23,7 @@ describe('Turkey Specific Validators (The National Guard) Hard Core Tests', () =
 
         // Algoritmik olarak geçerli TCKN örnekleri
         const VALID_TCKN = '10000000146';
+        // 11111111110: (5*7)-4=31 mod10=1 (10.hane), 10 mod10=0 (11.hane)
         const VALID_TCKN_2 = '11111111110';
 
         it('should validate mathematically correct TCKN', () => {
