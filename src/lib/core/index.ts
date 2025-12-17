@@ -21,3 +21,6 @@ export * from './form-state';
 
 // Field Dependencies (Conditional Fields)
 export * from './field-dependency';
+
+// Form Persistence (localStorage/sessionStorage)
+export * from './form-persistence';

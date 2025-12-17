@@ -7,7 +7,7 @@
  * All public APIs are exported from here.
  *
  * @packageDocumentation
- * @module @ANG-SIGNAL-FORMS/zignal
+ * @module @biyonik/zignal
  *
  * @author Ahmet ALTUN <ahmet.altun60@gmail.com>
  * @see https://github.com/biyonik/zignal
@@ -49,6 +49,13 @@ export {
     FieldDependency,
     FieldDependencyState,
     DependencyContext,
+
+    // Form Persistence (localStorage/sessionStorage)
+    FormPersistence,
+    FormPersistenceOptions,
+    StorageType,
+    createFormPersistence,
+    clearAllZignalPersistence,
 } from './lib/core';
 
 // =============================================================================
