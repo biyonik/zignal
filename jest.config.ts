@@ -33,7 +33,7 @@ const config: Config = {
     },
   },
   moduleNameMapper: {
-    '^@ANG-SIGNAL-FORMS/zignal$': '<rootDir>/src/public-api.ts',
+    '^@biyonik/zignal$': '<rootDir>/src/public-api.ts',
   },
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [

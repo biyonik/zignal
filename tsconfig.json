@@ -31,7 +31,7 @@
       "dom"
     ],
     "paths": {
-      "@ANG-SIGNAL-FORMS/zignal": ["src/public-api.ts"]
+      "@biyonik/zignal": ["src/public-api.ts"]
     }
   },
   "angularCompilerOptions": {
