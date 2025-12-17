@@ -293,19 +293,21 @@ describe('I18nService (The Translator)', () => {
     // ==========================================================================
     describe('Browser Locale Detection', () => {
 
-        const originalNavigator = global.navigator;
+        const originalNavigator = globalThis.navigator;
 
         afterEach(() => {
-            Object.defineProperty(global, 'navigator', {
+            Object.defineProperty(globalThis, 'navigator', {
                 value: originalNavigator,
                 writable: true,
+                configurable: true,
             });
         });
 
         it('should detect Turkish locale', () => {
-            Object.defineProperty(global, 'navigator', {
+            Object.defineProperty(globalThis, 'navigator', {
                 value: { language: 'tr-TR' },
                 writable: true,
+                configurable: true,
             });
 
             const locale = detectBrowserLocale();
@@ -314,9 +316,10 @@ describe('I18nService (The Translator)', () => {
         });
 
         it('should detect English locale', () => {
-            Object.defineProperty(global, 'navigator', {
+            Object.defineProperty(globalThis, 'navigator', {
                 value: { language: 'en-US' },
                 writable: true,
+                configurable: true,
             });
 
             const locale = detectBrowserLocale();
@@ -325,9 +328,10 @@ describe('I18nService (The Translator)', () => {
         });
 
         it('should fallback to English for unsupported locales', () => {
-            Object.defineProperty(global, 'navigator', {
+            Object.defineProperty(globalThis, 'navigator', {
                 value: { language: 'fr-FR' },
                 writable: true,
+                configurable: true,
             });
 
             const locale = detectBrowserLocale();
@@ -336,9 +340,10 @@ describe('I18nService (The Translator)', () => {
         });
 
         it('should fallback to English when navigator undefined', () => {
-            Object.defineProperty(global, 'navigator', {
+            Object.defineProperty(globalThis, 'navigator', {
                 value: undefined,
                 writable: true,
+                configurable: true,
             });
 
             const locale = detectBrowserLocale();

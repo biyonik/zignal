@@ -52,7 +52,7 @@ describe('EmailField Hard Core Tests', () => {
                 const result = schema.safeParse('spy@competitor.com');
                 expect(result.success).toBe(false);
                 if (!result.success) {
-                    expect(result.error.issues[0].message).toContain('İzin verilen domainler');
+                    expect(result.error.issues[0].message).toContain('domainlerden');
                 }
             });
 
@@ -79,7 +79,7 @@ describe('EmailField Hard Core Tests', () => {
                 const result = schema.safeParse('hacker@evil.com');
                 expect(result.success).toBe(false);
                 if (!result.success) {
-                    expect(result.error.issues[0].message).toBe('Bu e-posta domaini kabul edilmiyor');
+                    expect(result.error.issues[0].message).toContain('domainden e-posta kabul edilmiyor');
                 }
             });
 

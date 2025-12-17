@@ -1,21 +1,21 @@
 import { Type } from '@angular/core';
 import { IField } from './interfaces';
-import {
-  StringField,
-  NumberField,
-  BooleanField,
-  DateField,
-  SelectField,
-  PasswordField,
-  EmailField,
-  UrlField,
-  PhoneField,
-  ColorField,
-  FileField,
-  TextareaField,
-  MultiselectField,
-  GroupField,
-} from '../fields';
+
+// Direct imports to avoid circular dependency
+import { StringField } from '../fields/string.field';
+import { NumberField } from '../fields/number.field';
+import { BooleanField } from '../fields/boolean.field';
+import { DateField } from '../fields/date.field';
+import { SelectField } from '../fields/select.field';
+import { PasswordField } from '../fields/password.field';
+import { EmailField } from '../fields/email.field';
+import { UrlField } from '../fields/url.field';
+import { PhoneField } from '../fields/phone.field';
+import { ColorField } from '../fields/color.field';
+import { FileField } from '../fields/file.field';
+import { TextareaField } from '../fields/textarea.field';
+import { MultiselectField } from '../fields/multiselect.field';
+import { GroupField } from '../fields/group.field';
 
 /**
  * @fileoverview
@@ -71,46 +71,46 @@ export type FieldConstructor<T = unknown> = Type<IField<T>>;
  * ```
  */
 export const FIELD_REGISTRY: Record<string, FieldConstructor<any>> = {
-  // TR: Metin alanları
-  // EN: Text fields
-  string: StringField,
-  text: TextareaField,
-  textarea: TextareaField,
-  password: PasswordField,
-  email: EmailField,
-  url: UrlField,
-  phone: PhoneField,
+    // TR: Metin alanları
+    // EN: Text fields
+    string: StringField,
+    text: TextareaField,
+    textarea: TextareaField,
+    password: PasswordField,
+    email: EmailField,
+    url: UrlField,
+    phone: PhoneField,
 
-  // TR: Sayısal alanlar
-  // EN: Numeric fields
-  number: NumberField,
-  integer: NumberField,
-  decimal: NumberField,
+    // TR: Sayısal alanlar
+    // EN: Numeric fields
+    number: NumberField,
+    integer: NumberField,
+    decimal: NumberField,
 
-  // TR: Boolean alanlar
-  // EN: Boolean fields
-  boolean: BooleanField,
-  checkbox: BooleanField,
-  toggle: BooleanField,
+    // TR: Boolean alanlar
+    // EN: Boolean fields
+    boolean: BooleanField,
+    checkbox: BooleanField,
+    toggle: BooleanField,
 
-  // TR: Tarih alanları
-  // EN: Date fields
-  date: DateField,
+    // TR: Tarih alanları
+    // EN: Date fields
+    date: DateField,
 
-  // TR: Seçim alanları
-  // EN: Selection fields
-  select: SelectField,
-  enum: SelectField,
-  multiselect: MultiselectField,
+    // TR: Seçim alanları
+    // EN: Selection fields
+    select: SelectField,
+    enum: SelectField,
+    multiselect: MultiselectField,
 
-  // TR: Özel alanlar
-  // EN: Special fields
-  color: ColorField,
-  file: FileField,
+    // TR: Özel alanlar
+    // EN: Special fields
+    color: ColorField,
+    file: FileField,
 
-  // TR: Kompleks alanlar
-  // EN: Complex fields
-  group: GroupField,
+    // TR: Kompleks alanlar
+    // EN: Complex fields
+    group: GroupField,
 };
 
 /**
@@ -133,16 +133,16 @@ export const FIELD_REGISTRY: Record<string, FieldConstructor<any>> = {
  * ```
  */
 export function registerFieldType<T>(
-  type: string,
-  fieldClass: FieldConstructor<T>
+    type: string,
+    fieldClass: FieldConstructor<T>
 ): void {
-  if (FIELD_REGISTRY[type]) {
-    console.warn(
-      `Zignal: "${type}" tipi zaten kayıtlı. Üzerine yazılıyor.`,
-      `Zignal: Type "${type}" is already registered. Overwriting.`
-    );
-  }
-  FIELD_REGISTRY[type] = fieldClass;
+    if (FIELD_REGISTRY[type]) {
+        console.warn(
+            `Zignal: "${type}" tipi zaten kayıtlı. Üzerine yazılıyor.`,
+            `Zignal: Type "${type}" is already registered. Overwriting.`
+        );
+    }
+    FIELD_REGISTRY[type] = fieldClass;
 }
 
 /**
@@ -156,7 +156,7 @@ export function registerFieldType<T>(
  *          EN: True if registered
  */
 export function isFieldTypeRegistered(type: string): boolean {
-  return type in FIELD_REGISTRY;
+    return type in FIELD_REGISTRY;
 }
 
 /**
@@ -168,5 +168,5 @@ export function isFieldTypeRegistered(type: string): boolean {
  *          EN: List of registered types
  */
 export function getRegisteredFieldTypes(): string[] {
-  return Object.keys(FIELD_REGISTRY);
+    return Object.keys(FIELD_REGISTRY);
 }
