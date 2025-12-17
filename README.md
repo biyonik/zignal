@@ -15,69 +15,85 @@
 [![Angular](https://img.shields.io/badge/Angular-17%2B-DD0031.svg?logo=angular&logoColor=white)](https://angular.io/)
 [![Zod](https://img.shields.io/badge/Zod-Schema-3068B7.svg)](https://zod.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+<a href="https://github.com/biyonik/zignal/actions"><img src="https://github.com/biyonik/zignal/workflows/CI/badge.svg" alt="CI Status"></a>
 
   </div>
 </div>
 
 ---
 
-## 🌍 Introduction / Tanıtım
+## TR: Hakkında | EN: About
 
-**🇬🇧 English**
-Zignal is a next-generation form management library designed for the modern Angular ecosystem. It leverages **Angular Signals** for fine-grained reactivity and **Zod** for robust schema validation. Unlike traditional methods, Zignal is **Zoneless-ready**, meaning it doesn't rely on `zone.js` for change detection, offering superior performance.
+**TR:** Zignal, Angular Signals kullanarak reaktif form yönetimi sağlayan, Zod validasyonu ile type-safe bir form kütüphanesidir. Türkiye'ye özgü validatorlar (TCKN, VKN, IBAN) ve çoklu dil desteği içerir.
 
-**🇹🇷 Türkçe**
-Zignal, modern Angular ekosistemi için tasarlanmış yeni nesil bir form yönetim kütüphanesidir. İnce ayarlı reaktivite için **Angular Signals** ve sağlam şema doğrulaması için **Zod** kullanır. Geleneksel yöntemlerin aksine Zignal **Zoneless** uyumludur; yani değişiklik algılama için `zone.js`'e ihtiyaç duymaz ve üstün performans sunar.
+**EN:** Zignal is a type-safe form library that provides reactive form management using Angular Signals with Zod validation. It includes Turkey-specific validators (TCKN, VKN, IBAN) and multi-language support.
 
-## ✨ Features / Özellikler
+---
 
-- 🚀 **Signal-First Architecture:** Built entirely on Angular Signals. No RxJS subscriptions required for state management.
-- 🛡️ **Type-Safe:** Powered by Zod. Full type safety from schema definition to form values.
-- ⚡ **Zoneless Ready:** Perfect for Angular 18+ zoneless applications.
-- 🇹🇷 **TR Validators:** Built-in validators for Turkey (TCKN, VKN, IBAN, Plate, Phone).
-- 🧩 **Schema-Driven:** Create forms from JSON or TypeScript classes easily.
-- 🔌 **UI Agnostic:** Logic is separated from UI. Use it with Material, PrimeNG, or native HTML.
+## TR: Özellikler | EN: Features
 
-## 📦 Installation / Kurulum
+| TR | EN |
+|----|----|
+| **Signal-first** - Angular Signals ile fine-grained reactivity | **Signal-first** - Fine-grained reactivity with Angular Signals |
+| **Schema-driven** - JSON'dan dinamik form oluşturma | **Schema-driven** - Dynamic form generation from JSON |
+| **Type-safe** - Zod entegrasyonu ile runtime + compile-time güvenlik | **Type-safe** - Runtime + compile-time safety with Zod integration |
+| **Zoneless ready** - Angular 18+ zoneless mode uyumlu | **Zoneless ready** - Compatible with Angular 18+ zoneless mode |
+| **i18n** - Çoklu dil desteği (TR, EN ve custom) | **i18n** - Multi-language support (TR, EN and custom) |
+| **Form Persistence** - localStorage/sessionStorage desteği | **Form Persistence** - localStorage/sessionStorage support |
+| **Async Validation** - API-based asenkron validasyon | **Async Validation** - API-based asynchronous validation |
+| **TR Validators** - TCKN, VKN, IBAN, Plaka validasyonu | **TR Validators** - Turkish ID, Tax ID, IBAN, License plate validation |
+
+---
+
+## TR: Kurulum | EN: Installation
 
 ```bash
 npm install @biyonik/zignal zod
 ```
 
-## 🚀 Quick Start / Hızlı Başlangıç
+---
 
-### 1. Define Fields / Alanları Tanımla
+## TR: Hızlı Başlangıç | EN: Quick Start
 
-**🇬🇧** Create field instances with their configurations. Zignal provides ready-to-use fields like `StringField`, `NumberField`, etc.
-**🇹🇷** Konfigürasyonlarıyla birlikte alan örneklerini oluşturun. Zignal, `StringField`, `NumberField` gibi kullanıma hazır alanlar sunar.
+### 1. Field Tanımlama | Define Fields
 
 ```typescript
-import { StringField, NumberField, BooleanField } from '@biyonik/zignal';
+import { StringField, NumberField, BooleanField, PasswordField } from '@biyonik/zignal';
 
-// Simple text field / Basit metin alanı
-const emailField = new StringField('email', 'E-mail', {
+// TR: E-posta alanı
+// EN: Email field
+const emailField = new StringField('email', 'E-posta', {
   required: true,
-  email: true,
-  placeholder: 'user@example.com'
+  email: true
 });
 
-// Number field with constraints / Kısıtlamalı sayı alanı
-const ageField = new NumberField('age', 'Age / Yaş', {
+// TR: Yaş alanı
+// EN: Age field
+const ageField = new NumberField('age', 'Yaş', {
   required: true,
   min: 18,
-  max: 100
+  max: 100,
+  integer: true
 });
 
-// Boolean field (Checkbox) / Mantıksal alan
-const termsField = new BooleanField('terms', 'I accept terms / Şartları kabul ediyorum', {
-  required: true
+// TR: Şifre alanı (güçlü şifre kuralları)
+// EN: Password field (strong password rules)
+const passwordField = new PasswordField('password', 'Şifre', {
+  required: true,
+  minLength: 8,
+  requireUppercase: true,
+  requireNumber: true,
+  requireSpecial: true
+});
+
+// TR: Şartları kabul checkbox
+// EN: Terms acceptance checkbox
+const acceptTerms = new BooleanField('acceptTerms', 'Şartları kabul ediyorum', {
+  required: true  // true olması zorunlu
 });
 ```
 
-### 2. Create Schema / Şema Oluştur
-
-**🇬🇧** Combine fields into a schema. This schema manages the state and validation of the entire form.
-**🇹🇷** Alanları bir şemada birleştirin. Bu şema, tüm formun durumunu ve validasyonunu yönetir.
+### 2. Form Schema Oluşturma | Create Form Schema
 
 ```typescript
 import { FormSchema } from '@biyonik/zignal';
@@ -85,35 +101,32 @@ import { FormSchema } from '@biyonik/zignal';
 interface UserForm {
   email: string;
   age: number;
-  terms: boolean;
+  password: string;
+  acceptTerms: boolean;
 }
 
-// Create the schema instance
-// Şema örneğini oluştur
-export const userSchema = new FormSchema<UserForm>([
+const userSchema = new FormSchema<UserForm>([
   emailField,
   ageField,
-  termsField
+  passwordField,
+  acceptTerms
 ]);
 ```
 
-### 3. Use in Component / Bileşende Kullan
-
-**🇬🇧** Initialize the form in your component and bind it to the template. Notice usage of Signals: `value()`, `error()`.
-**🇹🇷** Formu bileşeninizde başlatın ve şablona bağlayın. Signal kullanımına dikkat edin: `value()`, `error()`.
+### 3. Component'te Kullanım | Use in Component
 
 ```typescript
 import { Component } from '@angular/core';
-import { userSchema } from './user.schema';
 
 @Component({
   selector: 'app-user-form',
-  standalone: true,
   template: `
     <form (ngSubmit)="onSubmit()">
+      <!-- Email -->
       <div class="field">
         <label>{{ form.fields.email.label }}</label>
         <input
+          type="email"
           [value]="form.fields.email.value()"
           (input)="form.setValue('email', $event.target.value)"
           (blur)="form.fields.email.touched.set(true)"
@@ -123,121 +136,341 @@ import { userSchema } from './user.schema';
         }
       </div>
 
+      <!-- Password -->
+      <div class="field">
+        <label>{{ form.fields.password.label }}</label>
+        <input
+          type="password"
+          [value]="form.fields.password.value()"
+          (input)="form.setValue('password', $event.target.value)"
+        />
+        @if (form.fields.password.error()) {
+          <span class="error">{{ form.fields.password.error() }}</span>
+        }
+      </div>
+
       <button type="submit" [disabled]="!form.valid()">
-        Submit / Gönder
+        Kaydet / Save
       </button>
     </form>
   `
 })
 export class UserFormComponent {
-  // Initialize form with default values
-  // Formu varsayılan değerlerle başlat
   form = userSchema.createForm({
     email: '',
     age: null,
-    terms: false
+    password: '',
+    acceptTerms: false
   });
 
   async onSubmit() {
-    // Trigger validation / Validasyonu tetikle
     if (await this.form.validateAll()) {
-      // Get type-safe data (parsed by Zod)
-      // Tip güvenli veriyi al (Zod tarafından işlenmiş)
       const data = this.form.getValues();
-      console.log('Form Data:', data);
+      console.log('Form data:', data);
     }
   }
 }
 ```
 
-## 🇹🇷 Turkey-Specific Validators / Türkiye'ye Özgü Validasyonlar
+---
 
-**🇬🇧** Zignal comes with built-in validators for Turkish specific data formats. These are strictly validated using official algorithms (Modulus algorithms for TCKN/IBAN etc.).
-
-**🇹🇷** Zignal, Türkiye'ye özgü veri formatları için yerleşik doğrulayıcılarla gelir. Bunlar resmi algoritmalar (TCKN/IBAN için Modül hesaplamaları vb.) kullanılarak sıkı bir şekilde doğrulanır.
+## TR: Dil Desteği (i18n) | EN: Language Support (i18n)
 
 ```typescript
-import { StringField } from '@biyonik/zignal';
-import { tcknSchema, turkishIbanSchema } from '@biyonik/zignal/validators';
+import { setLocale, addMessages, t, detectBrowserLocale, useAutoLocale } from '@biyonik/zignal';
 
-// Custom Field implementing TR Validation
-// TR Validasyonu uygulayan özel alan
-export class TCKNField extends StringField {
-  constructor(name: string, label: string) {
-    super(name, label, { required: true });
-  }
+// TR: Browser diline göre otomatik ayarla
+// EN: Auto-detect browser language
+const locale = useAutoLocale(); // Returns 'tr' or 'en'
 
-  // Override schema to use built-in TCKN validator
-  // Yerleşik TCKN doğrulayıcısını kullanmak için şemayı ezin
-  override schema() {
-    return tcknSchema;
-  }
-}
+// TR: Manuel dil değiştir
+// EN: Change language manually
+setLocale('en');
 
-// Usage / Kullanım
-const tcknField = new TCKNField('identityNo', 'T.C. Kimlik No');
+// TR: Custom mesajlar ekle (firma özel)
+// EN: Add custom messages (company specific)
+addMessages('tr', {
+  required: 'Bu bilgi zorunludur',
+  'string.email': 'Lütfen kurumsal e-posta adresinizi giriniz',
+});
+
+// TR: Yeni dil ekle (örn: Almanca)
+// EN: Add new language (e.g., German)
+addMessages('de', {
+  required: 'Dieses Feld ist erforderlich',
+  'string.min': 'Mindestens {min} Zeichen erforderlich',
+});
+setLocale('de');
+
+// TR: Validation mesajını al
+// EN: Get validation message
+const msg = t('password.min', { min: 8 });
+// TR: "Şifre en az 8 karakter olmalıdır"
+// EN: "Password must be at least 8 characters"
 ```
 
-### Available Validators / Mevcut Doğrulayıcılar
+---
 
-| Validator | Description (TR) |
-|-----------|------------------|
-| `tcknSchema` | T.C. Kimlik Numarası (Algoritmik Doğrulama) |
-| `vknSchema` | Vergi Kimlik Numarası |
-| `turkishIbanSchema` | TR IBAN (Mod97 Kontrolü) |
-| `turkishPhoneSchema` | Cep Telefonu (5XXXXXXXXX formatına normalize eder) |
-| `turkishPlateSchema` | Araç Plakası (İl kodu ve harf grubu kontrolü) |
-
-## 🧩 Dynamic Forms (JSON) / Dinamik Formlar
-
-**🇬🇧** You can create forms dynamically using JSON data, perfect for backend-driven UIs.
-**🇹🇷** Backend tabanlı arayüzler için mükemmel olan JSON verilerini kullanarak dinamik formlar oluşturabilirsiniz.
+## TR: Form Persistence | EN: Form Persistence
 
 ```typescript
-import { inject } from '@angular/core';
+import { createFormPersistence } from '@biyonik/zignal';
+
+// TR: Form verilerini localStorage'a kaydet
+// EN: Save form data to localStorage
+const persistence = createFormPersistence<UserForm>('user-form', {
+  storage: 'local',           // 'local' | 'session'
+  debounceMs: 500,            // Auto-save debounce
+  exclude: ['password'],      // Hassas alanları hariç tut
+  ttl: 24 * 60 * 60 * 1000,   // 24 saat sonra expire
+});
+
+// TR: Form verilerini yükle
+// EN: Load form data
+const savedData = persistence.load();
+if (savedData) {
+  form.patchValues(savedData);
+}
+
+// TR: Auto-save aktifleştir
+// EN: Enable auto-save
+persistence.enableAutoSave(form.values);
+
+// TR: Manuel kaydet
+// EN: Manual save
+persistence.save(form.getValues());
+
+// TR: Temizle
+// EN: Clear
+persistence.clear();
+```
+
+---
+
+## TR: Asenkron Validasyon | EN: Async Validation
+
+```typescript
+import { createEmailValidator, createUsernameValidator } from '@biyonik/zignal';
+
+// TR: E-posta benzersizlik kontrolü
+// EN: Email uniqueness check
+const emailValidator = createEmailValidator(
+  async (email) => {
+    const response = await fetch(`/api/check-email?email=${email}`);
+    const { exists } = await response.json();
+    return !exists; // true = geçerli, false = zaten var
+  },
+  {
+    debounceMs: 300,
+    cacheSize: 50,
+    errorMessage: 'Bu e-posta adresi zaten kullanımda'
+  }
+);
+
+// TR: Component'te kullan
+// EN: Use in component
+@Component({...})
+export class RegisterComponent {
+  emailValidator = emailValidator;
+
+  async checkEmail(email: string) {
+    const error = await this.emailValidator.validate(email);
+    if (error) {
+      console.log('Validation error:', error);
+    }
+  }
+
+  // TR: Reactive state
+  isPending = this.emailValidator.pending;   // Signal<boolean>
+  isValid = this.emailValidator.valid;       // Signal<boolean>
+  errorMsg = this.emailValidator.error;      // Signal<string | null>
+}
+```
+
+---
+
+## TR: Türkiye Validatorları | EN: Turkey Validators
+
+```typescript
+import {
+  tcknSchema,
+  vknSchema,
+  turkishIbanSchema,
+  turkishPhoneSchema,
+  turkishPlateSchema,
+  isValidTCKN,
+  isValidVKN
+} from '@biyonik/zignal';
+
+// TR: TCKN validasyonu
+// EN: Turkish ID validation
+const tckn = tcknSchema.safeParse('12345678901');
+if (!tckn.success) {
+  console.log('Geçersiz TCKN');
+}
+
+// TR: Direkt fonksiyon kullanımı
+// EN: Direct function usage
+if (isValidTCKN('12345678901')) {
+  console.log('TCKN geçerli');
+}
+
+// TR: Form field olarak
+// EN: As form field
+const tcknField = new StringField('tckn', 'T.C. Kimlik No', {
+  required: true,
+  pattern: /^\d{11}$/,
+  customValidator: (value) => isValidTCKN(value) ? null : 'Geçersiz TCKN'
+});
+```
+
+---
+
+## TR: Field Tipleri | EN: Field Types
+
+| Field | Type | TR: Açıklama | EN: Description |
+|-------|------|--------------|-----------------|
+| `StringField` | `string` | Tek satır metin | Single line text |
+| `NumberField` | `number` | Sayısal değer | Numeric value |
+| `BooleanField` | `boolean` | Evet/Hayır | Yes/No |
+| `DateField` | `Date` | Tarih seçici | Date picker |
+| `PasswordField` | `string` | Şifre (güç göstergeli) | Password (with strength) |
+| `EmailField` | `string` | E-posta | Email |
+| `UrlField` | `string` | URL | URL |
+| `TextareaField` | `string` | Çok satırlı metin | Multi-line text |
+| `SelectField<T>` | `T` | Dropdown seçimi | Dropdown selection |
+| `MultiselectField<T>` | `T[]` | Çoklu seçim | Multiple selection |
+| `ArrayField` | `object[]` | Tekrarlayan kayıtlar | Repeatable records |
+| `JsonField` | `object` | JSON/Object | JSON/Object |
+| `FileField` | `FileInfo` | Dosya yükleme | File upload |
+
+---
+
+## TR: FormState API | EN: FormState API
+
+```typescript
+const form = schema.createForm(initialValues);
+
+// ===============================================
+// TR: Signals (Reaktif)
+// EN: Signals (Reactive)
+// ===============================================
+form.values();           // Signal<T> - Tüm değerler / All values
+form.valid();            // Signal<boolean> - Geçerlilik / Validity
+form.dirty();            // Signal<boolean> - Değişiklik var mı? / Has changes?
+form.errors();           // Signal<Record<string, string | null>>
+
+// ===============================================
+// TR: Field Erişimi
+// EN: Field Access
+// ===============================================
+form.fields.email.value();     // Signal<string>
+form.fields.email.error();     // Signal<string | null>
+form.fields.email.touched();   // Signal<boolean>
+form.fields.email.valid();     // Signal<boolean>
+form.fields.email.dirty();     // Signal<boolean>
+
+// ===============================================
+// TR: Aksiyonlar
+// EN: Actions
+// ===============================================
+form.setValue('email', 'test@example.com');
+form.patchValues({ email: 'a@b.com', age: 25 });
+form.touchAll();               // Tüm hataları göster / Show all errors
+form.reset();                  // Başlangıç değerlerine dön / Reset to initial
+form.validateAll();            // Async validation
+
+// ===============================================
+// TR: Getter'lar
+// EN: Getters
+// ===============================================
+form.getValues();              // Type-safe data (Zod parsed)
+form.getDirtyValues();         // Sadece değişenler / Only changed fields
+```
+
+---
+
+## TR: JSON'dan Dinamik Form | EN: Dynamic Form from JSON
+
+```typescript
 import { SchemaFactory } from '@biyonik/zignal';
 
-export class DynamicComponent {
+@Component({...})
+export class DynamicFormComponent {
   private factory = inject(SchemaFactory);
 
-  // Create form from JSON config
-  // JSON konfigürasyonundan form oluştur
   form = this.factory.parse([
     {
       type: 'string',
-      name: 'fullName',
-      label: 'Full Name',
-      config: { required: true, minLength: 2 }
+      name: 'email',
+      label: 'E-posta',
+      config: { required: true, email: true }
     },
     {
-      type: 'date',
-      name: 'birthDate',
-      label: 'Birth Date'
+      type: 'number',
+      name: 'age',
+      label: 'Yaş',
+      config: { min: 18, max: 100 }
+    },
+    {
+      type: 'select',
+      name: 'country',
+      label: 'Ülke',
+      config: {
+        required: true,
+        options: [
+          { value: 'TR', label: 'Türkiye' },
+          { value: 'US', label: 'USA' }
+        ]
+      }
     }
   ]);
 }
 ```
 
-## 🏗️ Architecture / Mimari
+---
 
-### FormState
-Manages the state of the form using Angular Signals.
-* `values()`: Signal containing current form data.
-* `valid()`: Computed signal for overall validity.
-* `dirty()`: Tracks if the form has been modified.
+## TR: Karşılaştırma | EN: Comparison
 
-### DependencyResolver
-Handles complex inter-field dependencies without RxJS subscriptions.
-* **Show When:** Visibility based on other fields.
-* **Enable When:** Enable/Disable logic.
-* **Compute:** Calculate values (e.g., `Price * Quantity`).
-* **Circular Check:** Automatically detects infinite dependency loops.
+| TR: Özellik / EN: Feature | ngx-formly | Reactive Forms | **Zignal** |
+|---------------------------|------------|----------------|------------|
+| Reactivity | RxJS | RxJS | **Angular Signals** |
+| Zoneless Support | ❌ | ⚠️ | **✅** |
+| Type Safety | Limited | Limited | **Full (Zod)** |
+| i18n Support | Plugin | Manual | **Built-in** |
+| Form Persistence | ❌ | Manual | **Built-in** |
+| Async Validation | ✅ | ✅ | **✅ + Cache** |
+| Bundle Size | ~50KB | ~0KB (Angular) | **<20KB** |
+| Learning Curve | High | Medium | **Low** |
 
-## 🤝 Contributing / Katkıda Bulunma
+---
 
-**🇬🇧** Contributions are welcome! Please check `CONTRIBUTING.md` for details on code standards and testing.
-**🇹🇷** Katkılarınızı bekliyoruz! Kod standartları ve test süreçleri için lütfen `CONTRIBUTING.md` dosyasına göz atın.
+## TR: Gereksinimler | EN: Requirements
 
-## 📄 License
+- Angular 17.0.0+
+- Zod 3.22.0+
+- TypeScript 5.0+
 
-MIT License - Copyright (c) 2025 Biyonik
+---
+
+## TR: Lisans | EN: License
+
+MIT License - Ahmet ALTUN
+
+---
+
+## TR: Katkıda Bulunma | EN: Contributing
+
+1. Fork edin / Fork
+2. Feature branch oluşturun / Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit edin / Commit (`git commit -m 'feat: add amazing feature'`)
+4. Push edin / Push (`git push origin feature/amazing-feature`)
+5. Pull Request açın / Open Pull Request
+
+---
+
+## TR: Destek | EN: Support
+
+- [GitHub Issues](https://github.com/biyonik/zignal/issues)
+- [Discussions](https://github.com/biyonik/zignal/discussions)
+- [Documentation](./DOCUMENTATION.md)
