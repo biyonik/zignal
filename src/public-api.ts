@@ -185,3 +185,59 @@ export {
 export {
     ZgAutoFieldComponent
 } from './lib/ui/native';
+
+// =============================================================================
+// TR: UI Adapters - UI Adaptörleri
+// EN: UI Adapters
+// =============================================================================
+
+export {
+    // Interfaces
+    IUIAdapter,
+    UILibrary,
+    UIAdapterConfig,
+    FieldRenderContext,
+    FieldComponentMap,
+    FormRenderConfig,
+
+    // Base
+    BaseUIAdapter,
+
+    // Native
+    NativeUIAdapter,
+    nativeAdapter,
+
+    // Material
+    MaterialUIAdapter,
+    MaterialAdapterConfig,
+    MaterialColor,
+    MaterialAppearance,
+    MaterialFieldComponents,
+    registerMaterialComponents,
+
+    // PrimeNG
+    PrimeNGUIAdapter,
+    PrimeNGAdapterConfig,
+    PrimeNGFieldComponents,
+    registerPrimeNGComponents,
+
+    // Registry & DI
+    UI_ADAPTER,
+    UIAdapterRegistry,
+    provideUIAdapter,
+    provideUIAdapterFactory,
+    injectUIAdapter,
+} from './lib/ui/adapters';
+
+// =============================================================================
+// TR: Cross-Field Validators
+// EN: Cross-Field Validators
+// =============================================================================
+
+export {
+    CrossValidators,
+    CrossValidationRunner,
+    CrossFieldValidatorDef,
+    CrossValidatorFn,
+    CrossValidationResult,
+} from './lib/core/cross-field-validators';
