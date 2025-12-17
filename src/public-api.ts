@@ -241,3 +241,5 @@ export {
     CrossValidatorFn,
     CrossValidationResult,
 } from './lib/core/cross-field-validators';
+
+export { FormDataType } from './lib/core/form-state';

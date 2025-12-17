@@ -15,6 +15,8 @@
 // EN: Types & Interfaces
 // =============================================================================
 
+import {FormDataType} from "./form-state";
+
 /**
  * TR: Cross-field validator sonucu.
  * EN: Cross-field validator result.
@@ -28,7 +30,7 @@ export interface CrossValidationResult {
  * TR: Cross-field validator fonksiyonu.
  * EN: Cross-field validator function.
  */
-export type CrossValidatorFn<T extends Record<string, unknown>> = (
+export type CrossValidatorFn<T extends FormDataType> = (
     values: T
 ) => string | null;
 
@@ -36,7 +38,7 @@ export type CrossValidatorFn<T extends Record<string, unknown>> = (
  * TR: Gelişmiş cross-field validator tanımı.
  * EN: Advanced cross-field validator definition.
  */
-export interface CrossFieldValidatorDef<T extends Record<string, unknown>> {
+export interface CrossFieldValidatorDef<T extends FormDataType> {
     /**
      * TR: Validator'ın benzersiz adı.
      * EN: Unique name of the validator.
@@ -87,7 +89,7 @@ export const CrossValidators = {
      * CrossValidators.fieldsMatch('password', 'confirmPassword', 'Şifreler eşleşmiyor')
      * ```
      */
-    fieldsMatch<T extends Record<string, unknown>>(
+    fieldsMatch<T extends FormDataType>(
         field1: keyof T,
         field2: keyof T,
         message: string = 'Alanlar eşleşmiyor'
@@ -109,7 +111,7 @@ export const CrossValidators = {
      * TR: Şifre eşleştirmesi için özel validator.
      * EN: Special validator for password matching.
      */
-    passwordMatch<T extends Record<string, unknown>>(
+    passwordMatch<T extends FormDataType>(
         passwordField: keyof T = 'password' as keyof T,
         confirmField: keyof T = 'confirmPassword' as keyof T,
         message: string = 'Şifreler eşleşmiyor'
@@ -121,7 +123,7 @@ export const CrossValidators = {
      * TR: Email eşleştirmesi için özel validator.
      * EN: Special validator for email matching.
      */
-    emailMatch<T extends Record<string, unknown>>(
+    emailMatch<T extends FormDataType>(
         emailField: keyof T = 'email' as keyof T,
         confirmField: keyof T = 'confirmEmail' as keyof T,
         message: string = 'E-posta adresleri eşleşmiyor'
@@ -138,7 +140,7 @@ export const CrossValidators = {
      * CrossValidators.dateRange('startDate', 'endDate', 'Başlangıç tarihi bitiş tarihinden önce olmalı')
      * ```
      */
-    dateRange<T extends Record<string, unknown>>(
+    dateRange<T extends FormDataType>(
         startField: keyof T,
         endField: keyof T,
         message: string = 'Başlangıç tarihi bitiş tarihinden önce olmalıdır'
@@ -153,8 +155,10 @@ export const CrossValidators = {
 
                 if (!start || !end) return null; // Boş değerler valid
 
-                const startDate = start instanceof Date ? start : new Date(start as string);
-                const endDate = end instanceof Date ? end : new Date(end as string);
+                // @ts-ignore
+                const startDate: Date = start instanceof Date ? start : new Date(start as string);
+                // @ts-ignore
+                const endDate: Date = end instanceof Date ? end : new Date(end as string);
 
                 if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                     return null; // Geçersiz tarihler ayrı validasyonla kontrol edilir
@@ -172,7 +176,7 @@ export const CrossValidators = {
      * TR: Sayı aralığı validasyonu (min < max).
      * EN: Number range validation (min < max).
      */
-    numberRange<T extends Record<string, unknown>>(
+    numberRange<T extends FormDataType>(
         minField: keyof T,
         maxField: keyof T,
         message: string = 'Minimum değer maksimum değerden küçük olmalıdır'
@@ -204,7 +208,7 @@ export const CrossValidators = {
      * CrossValidators.atLeastOne(['phone', 'email'], 'Telefon veya e-posta girilmelidir')
      * ```
      */
-    atLeastOne<T extends Record<string, unknown>>(
+    atLeastOne<T extends FormDataType>(
         fields: (keyof T)[],
         message: string = 'En az bir alan doldurulmalıdır'
     ): CrossFieldValidatorDef<T> {
@@ -229,7 +233,7 @@ export const CrossValidators = {
      * TR: Tüm alanların dolu olması gerektiğini kontrol eder.
      * EN: Checks that all fields are filled.
      */
-    allRequired<T extends Record<string, unknown>>(
+    allRequired<T extends FormDataType>(
         fields: (keyof T)[],
         message: string = 'Tüm alanlar doldurulmalıdır'
     ): CrossFieldValidatorDef<T> {
@@ -254,7 +258,7 @@ export const CrossValidators = {
      * TR: Mutual exclusion - sadece biri dolu olabilir.
      * EN: Mutual exclusion - only one can be filled.
      */
-    mutuallyExclusive<T extends Record<string, unknown>>(
+    mutuallyExclusive<T extends FormDataType>(
         fields: (keyof T)[],
         message: string = 'Bu alanlardan sadece biri doldurulabilir'
     ): CrossFieldValidatorDef<T> {
@@ -284,7 +288,7 @@ export const CrossValidators = {
      * CrossValidators.requiredIf('hasCompany', true, 'companyName', 'Şirket adı zorunludur')
      * ```
      */
-    requiredIf<T extends Record<string, unknown>>(
+    requiredIf<T extends FormDataType>(
         triggerField: keyof T,
         triggerValue: unknown,
         requiredField: keyof T,
@@ -313,7 +317,7 @@ export const CrossValidators = {
      * TR: Koşullu zorunluluk - fonksiyon ile.
      * EN: Conditional requirement - with function.
      */
-    requiredWhen<T extends Record<string, unknown>>(
+    requiredWhen<T extends FormDataType>(
         condition: (values: T) => boolean,
         requiredField: keyof T,
         message: string = 'Bu alan zorunludur'
@@ -338,7 +342,7 @@ export const CrossValidators = {
      * TR: Toplam değer kontrolü (örn: yüzdeler toplamı 100 olmalı).
      * EN: Sum validation (e.g., percentages must sum to 100).
      */
-    sumEquals<T extends Record<string, unknown>>(
+    sumEquals<T extends FormDataType>(
         fields: (keyof T)[],
         targetSum: number,
         message: string = `Toplam ${targetSum} olmalıdır`
@@ -361,7 +365,7 @@ export const CrossValidators = {
      * TR: Benzersizlik kontrolü - alanlar farklı değerlere sahip olmalı.
      * EN: Uniqueness check - fields must have different values.
      */
-    allDifferent<T extends Record<string, unknown>>(
+    allDifferent<T extends FormDataType>(
         fields: (keyof T)[],
         message: string = 'Tüm alanlar farklı değerlere sahip olmalıdır'
     ): CrossFieldValidatorDef<T> {
@@ -398,7 +402,7 @@ export const CrossValidators = {
      * )
      * ```
      */
-    custom<T extends Record<string, unknown>>(
+    custom<T extends FormDataType>(
         name: string,
         dependsOn: (keyof T)[],
         validate: CrossValidatorFn<T>,
@@ -426,7 +430,7 @@ export const CrossValidators = {
  * TR: Cross-field validasyonlarını çalıştıran yardımcı sınıf.
  * EN: Helper class that runs cross-field validations.
  */
-export class CrossValidationRunner<T extends Record<string, unknown>> {
+export class CrossValidationRunner<T extends FormDataType> {
     constructor(
         private readonly validators: CrossFieldValidatorDef<T>[]
     ) {}

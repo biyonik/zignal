@@ -15,6 +15,21 @@ import {FieldValue, IField} from "./interfaces";
  */
 
 // =============================================================================
+// TR: Type Definitions
+// EN: Type Definitions
+// =============================================================================
+
+/**
+ * TR: Form veri yapısı için esnek constraint.
+ * Interface'lerin [key: string]: unknown gerektirmesini önler.
+ *
+ * EN: Flexible constraint for form data structure.
+ * Prevents interfaces from requiring [key: string]: unknown.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type FormDataType = Record<string, any>;
+
+// =============================================================================
 // TR: Interfaces - Aray�zler
 // EN: Interfaces
 // =============================================================================
@@ -57,7 +72,7 @@ import {FieldValue, IField} from "./interfaces";
  * }
  * ```
  */
-export interface FormState<T extends Record<string, unknown>> {
+export interface FormState<T extends FormDataType> {
   /**
    * TR: Her alan i�in reaktif state (FieldValue) tutan nesne haritası.
    * Alan adına g�re eri_im salar.
@@ -316,7 +331,7 @@ function deepEqual(
  * EN: Cross-field validator definition.
  * Validation rules that check multiple fields.
  */
-export interface CrossFieldValidator<T extends Record<string, unknown>> {
+export interface CrossFieldValidator<T extends FormDataType> {
   /**
    * TR: Validator'ın benzersiz adı.
    * EN: Unique name of the validator.
@@ -340,7 +355,7 @@ export interface CrossFieldValidator<T extends Record<string, unknown>> {
  * TR: FormSchema için yapılandırma seçenekleri.
  * EN: Configuration options for FormSchema.
  */
-export interface FormSchemaOptions<T extends Record<string, unknown>> {
+export interface FormSchemaOptions<T extends FormDataType> {
   /**
    * TR: Cross-field validator'lar.
    * EN: Cross-field validators.
@@ -407,7 +422,7 @@ export interface FormSchemaOptions<T extends Record<string, unknown>> {
  * }
  * ```
  */
-export class FormSchema<T extends Record<string, unknown>> {
+export class FormSchema<T extends FormDataType> {
   /**
    * TR: Alan adı -> IField mapping i�in hızlı eri_im Map'i.
    *
@@ -843,7 +858,7 @@ export class FormSchema<T extends Record<string, unknown>> {
  * const form = schema.createForm();
  * ```
  */
-export function createFormSchema<T extends Record<string, unknown>>(
+export function createFormSchema<T extends FormDataType>(
   fields: IField<unknown>[]
 ): FormSchema<T> {
   return new FormSchema<T>(fields);

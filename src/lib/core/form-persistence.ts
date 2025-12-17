@@ -1,4 +1,5 @@
 import { effect, Signal, DestroyRef } from '@angular/core';
+import {FormDataType} from "./form-state";
 
 /**
  * @fileoverview
@@ -161,7 +162,7 @@ interface PersistedData<T> {
  * });
  * ```
  */
-export class FormPersistence<T extends Record<string, unknown> = Record<string, unknown>> {
+export class FormPersistence<T extends FormDataType = FormDataType> {
     private readonly options: Required<FormPersistenceOptions>;
     private readonly storage: Storage;
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -423,7 +424,7 @@ export class FormPersistence<T extends Record<string, unknown> = Record<string, 
  * });
  * ```
  */
-export function createFormPersistence<T extends Record<string, unknown>>(
+export function createFormPersistence<T extends FormDataType>(
     key: string,
     options?: Omit<FormPersistenceOptions, 'key'>
 ): FormPersistence<T> {
