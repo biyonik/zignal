@@ -226,7 +226,21 @@ export abstract class BaseField<T> implements IField<T> {
          * Automatically recalculated on each value change.
          */
         const validationResult = computed(() => {
-            return this.schema().safeParse(value());
+            const zodResult = this.schema().safeParse(value());
+
+            if (!zodResult.success) {
+                return { success: false, error: zodResult.error.errors[0]?.message ?? 'Geçersiz değer' };
+            }
+
+            // Custom validator check
+            if (this.config.customValidator) {
+                const customError = this.config.customValidator(value());
+                if (customError) {
+                    return { success: false, error: customError };
+                }
+            }
+
+            return { success: true, error: null };
         });
 
         /**
@@ -262,7 +276,7 @@ export abstract class BaseField<T> implements IField<T> {
 
             // TR: 0lk hata mesaj1n1 d﷿n
             // EN: Return first error message
-            return result.error.errors[0]?.message ?? 'Ge﷿ersiz deer';
+            return validationResult().error;
         });
 
         return {value, error, touched, valid};

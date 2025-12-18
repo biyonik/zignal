@@ -65,6 +65,7 @@ export {
     createEmailValidator,
     createUsernameValidator,
     createUniquenessValidator,
+    createAsyncValidator,
 
     // i18n (Internationalization)
     I18nService,
@@ -130,6 +131,27 @@ export {
     ArrayFieldConfig,
     ArrayFieldState,
     ArrayItemState,
+
+    PhoneField,
+    PhoneFieldConfig,
+
+    PasswordField,
+    PasswordFieldConfig,
+
+    EmailField,
+    EmailFieldConfig,
+
+    UrlField,
+    UrlFieldConfig,
+
+    ColorField,
+    ColorFieldConfig,
+
+    FileField,
+    FileFieldConfig,
+
+    GroupField,
+    GroupFieldConfig,
 } from './lib/fields';
 
 // =============================================================================

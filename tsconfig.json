@@ -31,7 +31,8 @@
       "dom"
     ],
     "paths": {
-      "@biyonik/zignal": ["src/public-api.ts"]
+      "@biyonik/zignal": ["src/public-api.ts"],
+      "@biyonik/zignal/material": ["src/lib/ui/adapters/material"]
     }
   },
   "angularCompilerOptions": {

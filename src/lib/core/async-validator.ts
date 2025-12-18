@@ -525,3 +525,10 @@ export function createUniquenessValidator<T = string>(
         options
     );
 }
+
+export function createAsyncValidator<T = unknown>(
+    validatorFn: AsyncValidatorFn<T>,
+    options?: AsyncValidatorOptions
+): AsyncValidator<T> {
+    return new AsyncValidator<T>(validatorFn, options);
+}

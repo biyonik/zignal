@@ -71,6 +71,19 @@
       }
     },
     {
+      "files": ["src/lib/ui/adapters/material/**/*.ts"],
+      "rules": {
+        "@angular-eslint/component-selector": [
+          "error",
+          {
+            "type": "element",
+            "prefix": "zg-mat",
+            "style": "kebab-case"
+          }
+        ]
+      }
+    },
+    {
       "files": ["*.html"],
       "extends": [
         "plugin:@angular-eslint/template/recommended",
