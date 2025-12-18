@@ -1,4 +1,4 @@
-import {StringField, NumberField, EmailField, BooleanField, DateField, PasswordField, BaseField} from '../fields';
+import {StringField, NumberField, EmailField, BooleanField, DateField, PasswordField} from '../fields';
 import { FieldValue, IField, SchemaFactory } from '../core';
 
 /**
