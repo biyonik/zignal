@@ -1,5 +1,5 @@
 import {Directive, computed, input} from '@angular/core';
-import { FieldRenderContext, MaterialUIAdapter } from '@biyonik/zignal';
+import {FieldRenderContext, MaterialAdapterConfig, MaterialUIAdapter} from '@biyonik/zignal';
 
 /**
  * @fileoverview
@@ -13,7 +13,7 @@ export abstract class BaseMatField<T> {
     get field() { return this.context().field; }
     get state() { return this.context().state; }
     get adapter() { return this.context().adapter as MaterialUIAdapter; }
-    get matConfig() { return this.adapter.config; }
+    get matConfig() { return this.adapter.config as MaterialAdapterConfig; }
 
     // Reaktif hata sinyali
     readonly error = computed(() => this.state.error());

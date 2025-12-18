@@ -30,8 +30,8 @@ import { BaseMatField } from '../base-mat-field';
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
 
-      @if (field().config.hint) {
-        <mat-hint>{{ field().config.hint }}</mat-hint>
+      @if (field.config.hint) {
+        <mat-hint>{{ field.config.hint }}</mat-hint>
       }
 
       @if (error()) {

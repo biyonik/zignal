@@ -17,9 +17,9 @@ import { BaseMatField } from '../base-mat-field';
         {{ field.label }}
       </mat-checkbox>
 
-        @if (field().config.hint) {
+        @if (field.config.hint) {
             <div class="zg-mat-hint" style="font-size: 12px; color: rgba(0,0,0,.6); margin-left: 28px;">
-                {{ field().config.hint }}
+                {{ field.config.hint }}
             </div>
         }
 

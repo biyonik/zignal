@@ -21,7 +21,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
     template: `
     <mat-form-field style="width: 100%">
       <mat-label>{{ field.label }}</mat-label>
-      <mat-chip-grid #chipGrid [aria-label]="field.label">
+      <mat-chip-grid #chipGrid [attr.aria-label]="field.label">
         @for (val of selectedOptions(); track val.value) {
           <mat-chip-row (removed)="remove(val.value)">
             {{ val.label }}
@@ -46,8 +46,8 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
         }
       </mat-autocomplete>
 
-      @if (field().config.hint) {
-        <mat-hint>{{ field().config.hint }}</mat-hint>
+      @if (field.config.hint) {
+        <mat-hint>{{ field.config.hint }}</mat-hint>
       }
 
       @if (error()) {
