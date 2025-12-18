@@ -118,4 +118,6 @@ export interface FieldConfig {
    * EN: Default value. Used when creating the form.
    */
   defaultValue?: unknown;
+
+  pattern?: RegExp|string
 }

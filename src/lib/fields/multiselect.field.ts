@@ -119,6 +119,7 @@ export interface MultiselectFieldConfig<T = unknown> extends FieldConfig {
  * ```
  */
 export class MultiselectField<T = string> extends BaseField<T[]> {
+    readonly type = 'multiselect';
     /**
      * TR: MultiselectField constructor'ı.
      *

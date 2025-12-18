@@ -167,6 +167,7 @@ export const COMMON_MIME_TYPES = {
  * ```
  */
 export class FileField extends BaseField<FileInfo | FileInfo[] | null> {
+    readonly type = 'file';
     constructor(
         name: string,
         label: string,

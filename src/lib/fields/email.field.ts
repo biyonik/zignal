@@ -102,6 +102,7 @@ const DISPOSABLE_DOMAINS = [
  * ```
  */
 export class EmailField extends BaseField<string> {
+    readonly type = 'email';
     constructor(
         name: string,
         label: string,

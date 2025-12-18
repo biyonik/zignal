@@ -124,6 +124,7 @@ export interface NumberFieldConfig extends FieldConfig {
  * ```
  */
 export class NumberField extends BaseField<number> {
+    readonly type = 'number';
     /**
      * TR: NumberField constructor'ı.
      *

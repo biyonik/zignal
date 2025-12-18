@@ -58,7 +58,18 @@ import { FieldValue } from './field-value.interface';
  * ```
  */
 export interface IField<T = unknown> {
-  /**
+    /**
+     * TR: Alanın türünü belirten sabit string değeri.
+     * Her alan tipi için benzersiz olmalıdır (örn: 'string', 'date', 'select').
+     *
+     * EN: Constant string value indicating the type of the field.
+     * Should be unique for each field type (e.g., 'string', 'date', 'select').
+     *
+     * @example 'string', 'number', 'date'
+     */
+    readonly type: string;
+
+    /**
    * TR: Alanın sistemdeki benzersiz tanımlayıcısı.
    * Form submit'te JSON key olarak, veritabanında kolon adı olarak kullanılır.
    * camelCase formatında olmalıdır (örn: 'firstName', 'birthDate').

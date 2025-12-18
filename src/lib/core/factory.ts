@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { IField, FieldJsonSchema } from './interfaces';
-import { FIELD_REGISTRY, isFieldTypeRegistered } from './registry';
-import { StringField } from '../fields';
+import {Injectable} from '@angular/core';
+import {IField, FieldJsonSchema} from './interfaces';
+import {FIELD_REGISTRY, isFieldTypeRegistered} from './registry';
+import {StringField} from '../fields';
 
 /**
  * @fileoverview
@@ -56,131 +56,158 @@ import { StringField } from '../fields';
  * }
  * ```
  */
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class SchemaFactory {
-  /**
-   * TR: JSON şema dizisini parse ederek Field instance'ları oluşturur.
-   *
-   * Her şema objesi için:
-   * 1. Registry'den ilgili Field sınıfını bulur
-   * 2. Sınıfın instance'ını config ile oluşturur
-   * 3. Bulunamazsa fallback olarak StringField kullanır
-   *
-   * EN: Parses JSON schema array and creates Field instances.
-   *
-   * For each schema object:
-   * 1. Finds the corresponding Field class from registry
-   * 2. Creates class instance with config
-   * 3. Uses StringField as fallback if not found
-   *
-   * @param schemas - TR: Parse edilecek JSON şema dizisi
-   *                  EN: JSON schema array to parse
-   * @returns TR: Oluşturulan Field instance'ları dizisi
-   *          EN: Array of created Field instances
-   *
-   * @example
-   * ```typescript
-   * const fields = factory.parse([
-   *   { type: 'string', name: 'name', label: 'Ad' },
-   *   { type: 'number', name: 'age', label: 'Yaş', config: { min: 0 } }
-   * ]);
-   * ```
-   */
-  parse(schemas: FieldJsonSchema[]): IField<any>[] {
-    return schemas.map((schema) => this.createField(schema));
-  }
-
-  /**
-   * TR: Tek bir JSON şemasından Field instance'ı oluşturur.
-   *
-   * EN: Creates a Field instance from a single JSON schema.
-   *
-   * @param schema - TR: Field şeması
-   *                 EN: Field schema
-   * @returns TR: Oluşturulan Field instance'ı
-   *          EN: Created Field instance
-   *
-   * @example
-   * ```typescript
-   * const emailField = factory.createField({
-   *   type: 'string',
-   *   name: 'email',
-   *   label: 'E-posta',
-   *   config: { required: true, email: true }
-   * });
-   * ```
-   */
-  createField(schema: FieldJsonSchema): IField<any> {
-    const { type, name, label, config, defaultValue } = schema;
-
-    // TR: Registry'den field sınıfını al
-    // EN: Get field class from registry
-    if (!isFieldTypeRegistered(type)) {
-      console.warn(
-        `Zignal: Bilinmeyen alan tipi "${type}". StringField kullanılıyor.`,
-        `Zignal: Unknown field type "${type}". Using StringField as fallback.`
-      );
-      return new StringField(name, label ?? name, config as any);
+    /**
+     * TR: JSON şema dizisini parse ederek Field instance'ları oluşturur.
+     *
+     * Her şema objesi için:
+     * 1. Registry'den ilgili Field sınıfını bulur
+     * 2. Sınıfın instance'ını config ile oluşturur
+     * 3. Bulunamazsa fallback olarak StringField kullanır
+     *
+     * EN: Parses JSON schema array and creates Field instances.
+     *
+     * For each schema object:
+     * 1. Finds the corresponding Field class from registry
+     * 2. Creates class instance with config
+     * 3. Uses StringField as fallback if not found
+     *
+     * @param schemas - TR: Parse edilecek JSON şema dizisi
+     *                  EN: JSON schema array to parse
+     * @returns TR: Oluşturulan Field instance'ları dizisi
+     *          EN: Array of created Field instances
+     *
+     * @example
+     * ```typescript
+     * const fields = factory.parse([
+     *   { type: 'string', name: 'name', label: 'Ad' },
+     *   { type: 'number', name: 'age', label: 'Yaş', config: { min: 0 } }
+     * ]);
+     * ```
+     */
+    parse(schemas: FieldJsonSchema[]): IField<any>[] {
+        return schemas.map((schema) => this.createField(schema));
     }
 
-    const FieldClass = FIELD_REGISTRY[type];
+    /**
+     * TR: Tek bir JSON şemasından Field instance'ı oluşturur.
+     *
+     * EN: Creates a Field instance from a single JSON schema.
+     *
+     * @param schema - TR: Field şeması
+     *                 EN: Field schema
+     * @returns TR: Oluşturulan Field instance'ı
+     *          EN: Created Field instance
+     *
+     * @example
+     * ```typescript
+     * const emailField = factory.createField({
+     *   type: 'string',
+     *   name: 'email',
+     *   label: 'E-posta',
+     *   config: { required: true, email: true }
+     * });
+     * ```
+     */
+    createField(schema: FieldJsonSchema): IField<any> {
+        const {type, name, label, config, defaultValue} = schema;
 
-    // TR: Field instance'ı oluştur
-    // EN: Create field instance
-    try {
-      const fieldConfig = {
-        ...config,
-        defaultValue,
-      };
+        // TR: Registry'den field sınıfını al
+        // EN: Get field class from registry
+        if (!isFieldTypeRegistered(type)) {
+            console.warn(
+                `Zignal: Bilinmeyen alan tipi "${type}". StringField kullanılıyor.`,
+                `Zignal: Unknown field type "${type}". Using StringField as fallback.`
+            );
+            return new StringField(name, label ?? name, config as any);
+        }
 
-      return new FieldClass(name, label ?? name, fieldConfig);
-    } catch (error) {
-      console.error(
-        `Zignal: "${name}" alanı oluşturulurken hata.`,
-        `Zignal: Error creating field "${name}".`,
-        error
-      );
-      // TR: Hata durumunda fallback
-      // EN: Fallback on error
-      return new StringField(name, label ?? name, {});
-    }
-  }
+        const FieldClass = FIELD_REGISTRY[type];
 
-  /**
-   * TR: Birden fazla şemayı gruplar halinde parse eder.
-   * Form section'ları veya tab'ları için kullanışlıdır.
-   *
-   * EN: Parses multiple schemas in groups.
-   * Useful for form sections or tabs.
-   *
-   * @param groups - TR: Grup adı -> şemalar map'i
-   *                 EN: Group name -> schemas map
-   * @returns TR: Grup adı -> field'lar map'i
-   *          EN: Group name -> fields map
-   *
-   * @example
-   * ```typescript
-   * const groupedFields = factory.parseGroups({
-   *   personal: [
-   *     { type: 'string', name: 'name', label: 'Ad' },
-   *     { type: 'date', name: 'birthDate', label: 'Doğum Tarihi' }
-   *   ],
-   *   contact: [
-   *     { type: 'string', name: 'email', label: 'E-posta' },
-   *     { type: 'string', name: 'phone', label: 'Telefon' }
-   *   ]
-   * });
-   * ```
-   */
-  parseGroups(
-    groups: Record<string, FieldJsonSchema[]>
-  ): Record<string, IField<any>[]> {
-    const result: Record<string, IField<any>[]> = {};
+        // TR: Field instance'ı oluştur
+        // EN: Create field instance
+        try {
+            const fieldConfig = {
+                ...config,
+                defaultValue,
+            };
 
-    for (const [groupName, schemas] of Object.entries(groups)) {
-      result[groupName] = this.parse(schemas);
+            return new FieldClass(name, label ?? name, fieldConfig);
+        } catch (error) {
+            console.error(
+                `Zignal: "${name}" alanı oluşturulurken hata.`,
+                `Zignal: Error creating field "${name}".`,
+                error
+            );
+            // TR: Hata durumunda fallback
+            // EN: Fallback on error
+            return new StringField(name, label ?? name, {});
+        }
     }
 
-    return result;
-  }
+    /**
+     * TR: Birden fazla şemayı gruplar halinde parse eder.
+     * Form section'ları veya tab'ları için kullanışlıdır.
+     *
+     * EN: Parses multiple schemas in groups.
+     * Useful for form sections or tabs.
+     *
+     * @param groups - TR: Grup adı -> şemalar map'i
+     *                 EN: Group name -> schemas map
+     * @returns TR: Grup adı -> field'lar map'i
+     *          EN: Group name -> fields map
+     *
+     * @example
+     * ```typescript
+     * const groupedFields = factory.parseGroups({
+     *   personal: [
+     *     { type: 'string', name: 'name', label: 'Ad' },
+     *     { type: 'date', name: 'birthDate', label: 'Doğum Tarihi' }
+     *   ],
+     *   contact: [
+     *     { type: 'string', name: 'email', label: 'E-posta' },
+     *     { type: 'string', name: 'phone', label: 'Telefon' }
+     *   ]
+     * });
+     * ```
+     */
+    parseGroups(
+        groups: Record<string, FieldJsonSchema[]>
+    ): Record<string, IField<any>[]> {
+        const result: Record<string, IField<any>[]> = {};
+
+        for (const [groupName, schemas] of Object.entries(groups)) {
+            result[groupName] = this.parse(schemas);
+        }
+
+        return result;
+    }
+
+    /**
+     * TR: Field dizisini JSON şemasına dönüştürür.
+     * EN: Converts field array to JSON schema.
+     */
+    toSchema(fields: IField<any>[]): FieldJsonSchema[] {
+        return fields.map(field => this.fieldToSchema(field));
+    }
+
+    /**
+     * TR: Tek bir Field'ı JSON şemasına dönüştürür.
+     * EN: Converts single Field to JSON schema.
+     */
+    fieldToSchema(field: IField<any>): FieldJsonSchema {
+        const config = { ...field.config };
+
+        if (config.pattern instanceof RegExp) {
+            config.pattern = config.pattern.source;
+        }
+
+        return {
+            type: field.type,
+            name: field.name,
+            label: field.label,
+            config,
+        };
+    }
 }

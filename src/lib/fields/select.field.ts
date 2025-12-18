@@ -141,6 +141,7 @@ export interface SelectFieldConfig<T = unknown> extends FieldConfig {
  * ```
  */
 export class SelectField<T = string> extends BaseField<T> {
+    readonly type = 'select';
     /**
      * TR: SelectField constructor'ı.
      *

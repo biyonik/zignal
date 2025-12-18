@@ -126,6 +126,7 @@ export type PasswordStrength = 'weak' | 'fair' | 'good' | 'strong';
  * ```
  */
 export class PasswordField extends BaseField<string> {
+    readonly type = 'password';
     private readonly DEFAULT_MIN_LENGTH = 8;
     private readonly DEFAULT_SPECIAL_CHARS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 

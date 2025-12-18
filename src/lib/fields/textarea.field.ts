@@ -95,6 +95,7 @@ export interface TextareaFieldConfig extends FieldConfig {
  * ```
  */
 export class TextareaField extends BaseField<string> {
+    readonly type = 'textarea';
     /**
      * TR: TextareaField constructor'ı.
      *

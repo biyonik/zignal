@@ -134,6 +134,7 @@ export interface JsonFieldConfig extends FieldConfig {
  * ```
  */
 export class JsonField extends BaseField<Record<string, unknown>> {
+    readonly type = 'json';
     /**
      * TR: JsonField constructor. Yapılandırma ile JSON alanı oluşturur.
      *

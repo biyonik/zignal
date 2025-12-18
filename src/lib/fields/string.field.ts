@@ -102,6 +102,7 @@ export interface StringFieldConfig extends FieldConfig {
  * ```
  */
 export class StringField extends BaseField<string> {
+    readonly type = 'string'
     /**
      * TR: StringField constructor'ı.
      *

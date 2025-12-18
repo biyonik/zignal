@@ -1,7 +1,7 @@
-import { signal, computed, Signal, WritableSignal } from '@angular/core';
-import { z } from 'zod';
-import { BaseField } from './base.field';
-import { FieldConfig, FieldValue, IField } from '../core/interfaces';
+import {signal, computed, Signal, WritableSignal} from '@angular/core';
+import {z} from 'zod';
+import {BaseField} from './base.field';
+import {FieldConfig, FieldValue, IField} from '../core/interfaces';
 
 /**
  * @fileoverview
@@ -20,40 +20,40 @@ import { FieldConfig, FieldValue, IField } from '../core/interfaces';
  * EN: Extended configuration options for GroupField.
  */
 export interface GroupFieldConfig extends FieldConfig {
-  /**
-   * TR: Grup başlığı gösterilsin mi?
-   * EN: Should group title be shown?
-   * @default true
-   */
-  showTitle?: boolean;
+    /**
+     * TR: Grup başlığı gösterilsin mi?
+     * EN: Should group title be shown?
+     * @default true
+     */
+    showTitle?: boolean;
 
-  /**
-   * TR: Grup daraltılabilir mi?
-   * EN: Is group collapsible?
-   * @default false
-   */
-  collapsible?: boolean;
+    /**
+     * TR: Grup daraltılabilir mi?
+     * EN: Is group collapsible?
+     * @default false
+     */
+    collapsible?: boolean;
 
-  /**
-   * TR: Başlangıçta daraltılmış mı?
-   * EN: Is collapsed initially?
-   * @default false
-   */
-  collapsed?: boolean;
+    /**
+     * TR: Başlangıçta daraltılmış mı?
+     * EN: Is collapsed initially?
+     * @default false
+     */
+    collapsed?: boolean;
 
-  /**
-   * TR: Grup layout'u.
-   * EN: Group layout.
-   * @default 'vertical'
-   */
-  layout?: 'vertical' | 'horizontal' | 'grid';
+    /**
+     * TR: Grup layout'u.
+     * EN: Group layout.
+     * @default 'vertical'
+     */
+    layout?: 'vertical' | 'horizontal' | 'grid';
 
-  /**
-   * TR: Grid sütun sayısı (layout='grid' ise).
-   * EN: Grid column count (if layout='grid').
-   * @default 2
-   */
-  columns?: number;
+    /**
+     * TR: Grid sütun sayısı (layout='grid' ise).
+     * EN: Grid column count (if layout='grid').
+     * @default 2
+     */
+    columns?: number;
 }
 
 /**
@@ -61,53 +61,53 @@ export interface GroupFieldConfig extends FieldConfig {
  * EN: Interface holding state of fields within the group.
  */
 export interface GroupFieldState {
-  /**
-   * TR: Alt alanların FieldValue'ları.
-   * EN: FieldValues of sub-fields.
-   */
-  fields: Record<string, FieldValue<unknown>>;
+    /**
+     * TR: Alt alanların FieldValue'ları.
+     * EN: FieldValues of sub-fields.
+     */
+    fields: Record<string, FieldValue<unknown>>;
 
-  /**
-   * TR: Tüm grup değerlerini tek nesne olarak döndürür.
-   * EN: Returns all group values as single object.
-   */
-  values: Signal<Record<string, unknown>>;
+    /**
+     * TR: Tüm grup değerlerini tek nesne olarak döndürür.
+     * EN: Returns all group values as single object.
+     */
+    values: Signal<Record<string, unknown>>;
 
-  /**
-   * TR: Grubun geçerlilik durumu.
-   * EN: Validity status of the group.
-   */
-  valid: Signal<boolean>;
+    /**
+     * TR: Grubun geçerlilik durumu.
+     * EN: Validity status of the group.
+     */
+    valid: Signal<boolean>;
 
-  /**
-   * TR: Grup hataları.
-   * EN: Group errors.
-   */
-  errors: Signal<Record<string, string | null>>;
+    /**
+     * TR: Grup hataları.
+     * EN: Group errors.
+     */
+    errors: Signal<Record<string, string | null>>;
 
-  /**
-   * TR: Tüm alanları touched yap.
-   * EN: Mark all fields as touched.
-   */
-  touchAll: () => void;
+    /**
+     * TR: Tüm alanları touched yap.
+     * EN: Mark all fields as touched.
+     */
+    touchAll: () => void;
 
-  /**
-   * TR: Tüm alanları sıfırla.
-   * EN: Reset all fields.
-   */
-  reset: (values?: Record<string, unknown>) => void;
+    /**
+     * TR: Tüm alanları sıfırla.
+     * EN: Reset all fields.
+     */
+    reset: (values?: Record<string, unknown>) => void;
 
-  /**
-   * TR: Tek alan değeri güncelle.
-   * EN: Update single field value.
-   */
-  setValue: (name: string, value: unknown) => void;
+    /**
+     * TR: Tek alan değeri güncelle.
+     * EN: Update single field value.
+     */
+    setValue: (name: string, value: unknown) => void;
 
-  /**
-   * TR: Birden fazla alan değeri güncelle.
-   * EN: Update multiple field values.
-   */
-  patchValues: (values: Record<string, unknown>) => void;
+    /**
+     * TR: Birden fazla alan değeri güncelle.
+     * EN: Update multiple field values.
+     */
+    patchValues: (values: Record<string, unknown>) => void;
 }
 
 /**
@@ -158,232 +158,234 @@ export interface GroupFieldState {
  * ```
  */
 export class GroupField extends BaseField<Record<string, unknown>> {
-  constructor(
-    name: string,
-    label: string,
-    public readonly groupFields: IField<unknown>[],
-    public override readonly config: GroupFieldConfig = {}
-  ) {
-    super(name, label, config);
-  }
+    readonly type = 'group';
 
-  /**
-   * TR: Grup için birleşik Zod şeması oluşturur.
-   * EN: Creates combined Zod schema for the group.
-   */
-  schema(): z.ZodType<Record<string, unknown>> {
-    const shape: z.ZodRawShape = {};
-
-    for (const field of this.groupFields) {
-      shape[field.name] = field.schema();
+    constructor(
+        name: string,
+        label: string,
+        public readonly groupFields: IField<unknown>[],
+        public override readonly config: GroupFieldConfig = {}
+    ) {
+        super(name, label, config);
     }
 
-    const objectSchema = z.object(shape);
-    return this.applyRequired(objectSchema) as z.ZodType<Record<string, unknown>>;
-  }
+    /**
+     * TR: Grup için birleşik Zod şeması oluşturur.
+     * EN: Creates combined Zod schema for the group.
+     */
+    schema(): z.ZodType<Record<string, unknown>> {
+        const shape: z.ZodRawShape = {};
 
-  /**
-   * TR: Grup değerlerini özet olarak gösterir.
-   * EN: Displays group values as summary.
-   */
-  override present(value: Record<string, unknown> | null): string {
-    if (!value) return '-';
+        for (const field of this.groupFields) {
+            shape[field.name] = field.schema();
+        }
 
-    // TR: İlk 2-3 alanı göster
-    // EN: Show first 2-3 fields
-    const entries = Object.entries(value)
-      .filter(([, v]) => v != null && v !== '')
-      .slice(0, 3);
-
-    if (entries.length === 0) return '-';
-
-    return entries.map(([, v]) => String(v)).join(', ');
-  }
-
-  /**
-   * TR: Grup state'ini oluşturur.
-   * EN: Creates group state.
-   */
-  createGroupState(initial: Record<string, unknown> = {}): GroupFieldState {
-    // TR: Her alan için FieldValue oluştur
-    // EN: Create FieldValue for each field
-    const fields: Record<string, FieldValue<unknown>> = {};
-    const initialFieldValues = new Map<string, unknown>();
-
-    for (const field of this.groupFields) {
-      const initValue = initial[field.name] ?? null;
-      fields[field.name] = field.createValue(initValue);
-      initialFieldValues.set(field.name, initValue);
+        const objectSchema = z.object(shape);
+        return this.applyRequired(objectSchema) as z.ZodType<Record<string, unknown>>;
     }
 
-    // TR: Computed values
-    // EN: Computed values
-    const values = computed(() => {
-      const result: Record<string, unknown> = {};
-      for (const [name, fv] of Object.entries(fields)) {
-        result[name] = fv.value();
-      }
-      return result;
-    });
+    /**
+     * TR: Grup değerlerini özet olarak gösterir.
+     * EN: Displays group values as summary.
+     */
+    override present(value: Record<string, unknown> | null): string {
+        if (!value) return '-';
 
-    const valid = computed(() =>
-      Object.values(fields).every(fv => fv.valid())
-    );
+        // TR: İlk 2-3 alanı göster
+        // EN: Show first 2-3 fields
+        const entries = Object.entries(value)
+            .filter(([, v]) => v != null && v !== '')
+            .slice(0, 3);
 
-    const errors = computed(() => {
-      const result: Record<string, string | null> = {};
-      for (const [name, fv] of Object.entries(fields)) {
-        result[name] = fv.error();
-      }
-      return result;
-    });
+        if (entries.length === 0) return '-';
 
-    // TR: Actions
-    // EN: Actions
-    const touchAll = (): void => {
-      for (const fv of Object.values(fields)) {
-        fv.touched.set(true);
-      }
-    };
-
-    const reset = (newValues?: Record<string, unknown>): void => {
-      const resetValues = newValues ?? Object.fromEntries(initialFieldValues);
-      for (const [name, fv] of Object.entries(fields)) {
-        const val = resetValues[name] ?? null;
-        fv.value.set(val);
-        fv.touched.set(false);
-      }
-    };
-
-    const setValue = (name: string, value: unknown): void => {
-      const fv = fields[name];
-      if (fv) {
-        fv.value.set(value);
-      }
-    };
-
-    const patchValues = (vals: Record<string, unknown>): void => {
-      for (const [name, value] of Object.entries(vals)) {
-        setValue(name, value);
-      }
-    };
-
-    return {
-      fields,
-      values,
-      valid,
-      errors,
-      touchAll,
-      reset,
-      setValue,
-      patchValues,
-    };
-  }
-
-  /**
-   * TR: BaseField.createValue override - GroupFieldState döndürür.
-   * EN: BaseField.createValue override - returns GroupFieldState.
-   */
-  override createValue(initial?: Record<string, unknown>): FieldValue<Record<string, unknown>> {
-    const groupState = this.createGroupState(initial);
-
-    return {
-      value: groupState.values as unknown as WritableSignal<Record<string, unknown>>,
-      touched: signal(false),
-      error: computed(() => {
-        const errs = Object.values(groupState.errors()).filter(Boolean);
-        return errs.length > 0 ? errs[0] : null;
-      }),
-      valid: groupState.valid,
-    };
-  }
-
-  /**
-   * TR: Dışa aktarım için grup değerleri.
-   * EN: Group values for export.
-   */
-  override toExport(value: Record<string, unknown> | null): Record<string, unknown> | null {
-    if (!value) return null;
-
-    const result: Record<string, unknown> = {};
-
-    for (const field of this.groupFields) {
-      const fieldValue = value[field.name];
-      result[field.name] = field.toExport(fieldValue);
+        return entries.map(([, v]) => String(v)).join(', ');
     }
 
-    return result;
-  }
+    /**
+     * TR: Grup state'ini oluşturur.
+     * EN: Creates group state.
+     */
+    createGroupState(initial: Record<string, unknown> = {}): GroupFieldState {
+        // TR: Her alan için FieldValue oluştur
+        // EN: Create FieldValue for each field
+        const fields: Record<string, FieldValue<unknown>> = {};
+        const initialFieldValues = new Map<string, unknown>();
 
-  /**
-   * TR: İçe aktarım için grup değerleri.
-   * EN: Group values for import.
-   */
-  override fromImport(raw: unknown): Record<string, unknown> | null {
-    if (raw == null) return null;
-    if (typeof raw !== 'object') return null;
+        for (const field of this.groupFields) {
+            const initValue = initial[field.name] ?? null;
+            fields[field.name] = field.createValue(initValue);
+            initialFieldValues.set(field.name, initValue);
+        }
 
-    const input = raw as Record<string, unknown>;
-    const result: Record<string, unknown> = {};
+        // TR: Computed values
+        // EN: Computed values
+        const values = computed(() => {
+            const result: Record<string, unknown> = {};
+            for (const [name, fv] of Object.entries(fields)) {
+                result[name] = fv.value();
+            }
+            return result;
+        });
 
-    for (const field of this.groupFields) {
-      const rawValue = input[field.name];
-      result[field.name] = field.fromImport(rawValue);
+        const valid = computed(() =>
+            Object.values(fields).every(fv => fv.valid())
+        );
+
+        const errors = computed(() => {
+            const result: Record<string, string | null> = {};
+            for (const [name, fv] of Object.entries(fields)) {
+                result[name] = fv.error();
+            }
+            return result;
+        });
+
+        // TR: Actions
+        // EN: Actions
+        const touchAll = (): void => {
+            for (const fv of Object.values(fields)) {
+                fv.touched.set(true);
+            }
+        };
+
+        const reset = (newValues?: Record<string, unknown>): void => {
+            const resetValues = newValues ?? Object.fromEntries(initialFieldValues);
+            for (const [name, fv] of Object.entries(fields)) {
+                const val = resetValues[name] ?? null;
+                fv.value.set(val);
+                fv.touched.set(false);
+            }
+        };
+
+        const setValue = (name: string, value: unknown): void => {
+            const fv = fields[name];
+            if (fv) {
+                fv.value.set(value);
+            }
+        };
+
+        const patchValues = (vals: Record<string, unknown>): void => {
+            for (const [name, value] of Object.entries(vals)) {
+                setValue(name, value);
+            }
+        };
+
+        return {
+            fields,
+            values,
+            valid,
+            errors,
+            touchAll,
+            reset,
+            setValue,
+            patchValues,
+        };
     }
 
-    return result;
-  }
+    /**
+     * TR: BaseField.createValue override - GroupFieldState döndürür.
+     * EN: BaseField.createValue override - returns GroupFieldState.
+     */
+    override createValue(initial?: Record<string, unknown>): FieldValue<Record<string, unknown>> {
+        const groupState = this.createGroupState(initial);
 
-  // ===========================================================================
-  // TR: Yardımcı Metodlar
-  // EN: Helper Methods
-  // ===========================================================================
+        return {
+            value: groupState.values as unknown as WritableSignal<Record<string, unknown>>,
+            touched: signal(false),
+            error: computed(() => {
+                const errs = Object.values(groupState.errors()).filter(Boolean);
+                return errs.length > 0 ? errs[0] : null;
+            }),
+            valid: groupState.valid,
+        };
+    }
 
-  /**
-   * TR: Grup içindeki alanları döndürür.
-   * EN: Returns fields within the group.
-   */
-  getFields(): IField<unknown>[] {
-    return this.groupFields;
-  }
+    /**
+     * TR: Dışa aktarım için grup değerleri.
+     * EN: Group values for export.
+     */
+    override toExport(value: Record<string, unknown> | null): Record<string, unknown> | null {
+        if (!value) return null;
 
-  /**
-   * TR: İsme göre alan bulur.
-   * EN: Finds field by name.
-   */
-  getField(name: string): IField<unknown> | undefined {
-    return this.groupFields.find(f => f.name === name);
-  }
+        const result: Record<string, unknown> = {};
 
-  /**
-   * TR: Alan isimlerini döndürür.
-   * EN: Returns field names.
-   */
-  getFieldNames(): string[] {
-    return this.groupFields.map(f => f.name);
-  }
+        for (const field of this.groupFields) {
+            const fieldValue = value[field.name];
+            result[field.name] = field.toExport(fieldValue);
+        }
 
-  /**
-   * TR: Layout ayarını döndürür.
-   * EN: Returns layout setting.
-   */
-  get layout(): 'vertical' | 'horizontal' | 'grid' {
-    return this.config.layout ?? 'vertical';
-  }
+        return result;
+    }
 
-  /**
-   * TR: Grid sütun sayısını döndürür.
-   * EN: Returns grid column count.
-   */
-  get columns(): number {
-    return this.config.columns ?? 2;
-  }
+    /**
+     * TR: İçe aktarım için grup değerleri.
+     * EN: Group values for import.
+     */
+    override fromImport(raw: unknown): Record<string, unknown> | null {
+        if (raw == null) return null;
+        if (typeof raw !== 'object') return null;
 
-  /**
-   * TR: Grup daraltılabilir mi?
-   * EN: Is group collapsible?
-   */
-  get collapsible(): boolean {
-    return this.config.collapsible ?? false;
-  }
+        const input = raw as Record<string, unknown>;
+        const result: Record<string, unknown> = {};
+
+        for (const field of this.groupFields) {
+            const rawValue = input[field.name];
+            result[field.name] = field.fromImport(rawValue);
+        }
+
+        return result;
+    }
+
+    // ===========================================================================
+    // TR: Yardımcı Metodlar
+    // EN: Helper Methods
+    // ===========================================================================
+
+    /**
+     * TR: Grup içindeki alanları döndürür.
+     * EN: Returns fields within the group.
+     */
+    getFields(): IField<unknown>[] {
+        return this.groupFields;
+    }
+
+    /**
+     * TR: İsme göre alan bulur.
+     * EN: Finds field by name.
+     */
+    getField(name: string): IField<unknown> | undefined {
+        return this.groupFields.find(f => f.name === name);
+    }
+
+    /**
+     * TR: Alan isimlerini döndürür.
+     * EN: Returns field names.
+     */
+    getFieldNames(): string[] {
+        return this.groupFields.map(f => f.name);
+    }
+
+    /**
+     * TR: Layout ayarını döndürür.
+     * EN: Returns layout setting.
+     */
+    get layout(): 'vertical' | 'horizontal' | 'grid' {
+        return this.config.layout ?? 'vertical';
+    }
+
+    /**
+     * TR: Grid sütun sayısını döndürür.
+     * EN: Returns grid column count.
+     */
+    get columns(): number {
+        return this.config.columns ?? 2;
+    }
+
+    /**
+     * TR: Grup daraltılabilir mi?
+     * EN: Is group collapsible?
+     */
+    get collapsible(): boolean {
+        return this.config.collapsible ?? false;
+    }
 }

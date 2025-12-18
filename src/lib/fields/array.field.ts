@@ -261,6 +261,7 @@ export interface ArrayFieldState {
  * ```
  */
 export class ArrayField extends BaseField<Record<string, unknown>[]> {
+    readonly type = 'array';
     /**
      * TR: ArrayField constructor. Alt alanlar ve yapılandırma ile dizi alanı oluşturur.
      *

@@ -96,6 +96,7 @@ export interface UrlFieldConfig extends FieldConfig {
  * ```
  */
 export class UrlField extends BaseField<string> {
+    readonly type = 'url';
     private readonly DEFAULT_PROTOCOLS = ['http', 'https'];
 
     constructor(

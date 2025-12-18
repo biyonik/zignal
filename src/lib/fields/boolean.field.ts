@@ -86,6 +86,7 @@ export interface BooleanFieldConfig extends FieldConfig {
  * ```
  */
 export class BooleanField extends BaseField<boolean> {
+    readonly type = 'boolean';
     /**
      * TR: BooleanField constructor'ı.
      *

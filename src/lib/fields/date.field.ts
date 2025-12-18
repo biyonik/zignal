@@ -104,6 +104,7 @@ export interface DateFieldConfig extends FieldConfig {
  * ```
  */
 export class DateField extends BaseField<Date> {
+    readonly type = 'date';
     /**
      * TR: DateField constructor'ı.
      *
