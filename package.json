@@ -1,6 +1,6 @@
 {
   "name": "@biyonik/zignal",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Signal-first, schema-driven form library for Angular 17+. Powered by Zod validation.",
   "scripts": {
     "build": "ng-packagr -p ng-package.json",
