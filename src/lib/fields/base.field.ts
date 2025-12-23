@@ -1,5 +1,5 @@
 import {signal, computed} from '@angular/core';
-import {z} from 'zod';
+import {TypeOf, z, ZodType} from 'zod';
 import {
     IField,
     FieldConfig,
@@ -516,12 +516,12 @@ export abstract class BaseField<T> implements IField<T> {
      *
      * @protected
      */
-    protected applyRequired<S extends z.ZodType>(schema: S): S {
+    protected applyRequired<S extends z.ZodType>(schema: S): ZodType<TypeOf<S>> {
         if (this.config.required) {
             return schema as S;
         }
         // TR: Zorunlu deilse null veya undefined kabul edilir
         // EN: If not required, null or undefined is accepted
-        return schema.nullable().optional() as unknown as S;
+        return schema.nullable().optional() as z.ZodType<z.infer<S>>;
     }
 }

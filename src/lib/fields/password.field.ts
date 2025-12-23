@@ -149,6 +149,10 @@ export class PasswordField extends BaseField<string> {
 
         let base = z.string().min(minLen, t('password.min', { min: minLen }));
 
+        if (this.config.required) {
+            base = base.min(1, t('required'));
+        }
+
         if (this.config.maxLength !== undefined) {
             base = base.max(this.config.maxLength, t('password.max', { max: this.config.maxLength }));
         }
@@ -172,7 +176,12 @@ export class PasswordField extends BaseField<string> {
             );
         }
 
-        return this.applyRequired(base);
+        const processed = z.preprocess(
+            (val) => val === null ? '' : val,
+            base
+        );
+
+        return this.applyRequired(processed);
     }
 
     /**

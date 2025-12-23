@@ -139,13 +139,11 @@ export class ColorField extends BaseField<string> {
         // TR: Preset kontrolü (allowCustom false ise)
         // EN: Preset check (if allowCustom is false)
         if (this.config.allowCustom === false && this.config.presets?.length) {
-            return this.applyRequired(
-                base.refine(
-                    (value) => this.config.presets!.includes(value.toLowerCase()) ||
-                        this.config.presets!.includes(value.toUpperCase()),
-                    {message: 'Lütfen önceden tanımlı renklerden birini seçin'}
-                )
-            );
+            return this.applyRequired(base.refine(
+                (value) => this.config.presets!.includes(value.toLowerCase()) ||
+                    this.config.presets!.includes(value.toUpperCase()),
+                {message: 'Lütfen önceden tanımlı renklerden birini seçin'}
+            ));
         }
 
         return this.applyRequired(base);

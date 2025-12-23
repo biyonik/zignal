@@ -154,6 +154,10 @@ export class StringField extends BaseField<string> {
     schema(): z.ZodType<string> {
         let base = z.string();
 
+        if (this.config.required) {
+            base = base.min(1, t('required'));
+        }
+
         // TR: Minimum karakter kontrolü
         // EN: Minimum character check
         if (this.config.minLength !== undefined) {
@@ -193,7 +197,12 @@ export class StringField extends BaseField<string> {
             );
         }
 
-        return this.applyRequired(base);
+        const processed = z.preprocess(
+            (val) => val === null ? '' : val,
+            base
+        );
+
+        return this.applyRequired(processed);
     }
 
     /**

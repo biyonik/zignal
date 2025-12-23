@@ -118,6 +118,13 @@ export class EmailField extends BaseField<string> {
     schema(): z.ZodType<string> {
         let base: z.ZodType<string> = z.string().email(t('string.email'));
 
+        if (this.config.required) {
+            base = base.refine(
+                (email) => email.trim().length > 0,
+                { message: t('required') }
+            )
+        }
+
         // TR: Domain kontrolü
         // EN: Domain check
         if (this.config.allowedDomains?.length) {
@@ -154,7 +161,12 @@ export class EmailField extends BaseField<string> {
             );
         }
 
-        return this.applyRequired(base);
+        const processed = z.preprocess(
+            (val) => val === null ? '' : val,
+            base
+        );
+
+        return this.applyRequired(processed);
     }
 
     /**

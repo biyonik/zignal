@@ -9,7 +9,7 @@ import { FieldConfig } from '../core';
 // -----------------------------------------------------------------------------
 class TestableField extends BaseField<string> {
     // Protected methodu test için public'e açıyoruz (Exposure)
-    public override applyRequired<S extends z.ZodType>(schema: S): S {
+    public override applyRequired<S extends z.ZodType>(schema: S): ZodType<TypeOf<S>> {
         return super.applyRequired(schema);
     }
 

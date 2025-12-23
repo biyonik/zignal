@@ -819,7 +819,7 @@ export class ZgAutoFieldComponent<T = unknown>
         const result = this.validationResult();
         return result.success
             ? null
-            : result.error.errors[0]?.message ?? 'Geçersiz değer';
+            : result.error?.issues?.[0]?.message ?? 'Geçersiz değer';
     });
 
     private onChange: (value: T | null) => void = () => {};
@@ -845,10 +845,16 @@ export class ZgAutoFieldComponent<T = unknown>
         const result = this.field().schema().safeParse(control.value);
         if (result.success) return null;
         const errors: ValidationErrors = {};
-        for (const error of result.error.errors) {
-            errors[error.code || 'zodError'] = { message: error.message };
+        const zodIssues = result.error?.issues ?? [];
+
+        for (const issue of zodIssues) {
+            errors[issue.code || 'zodError'] = {
+                message: issue.message,
+                path: issue.path,
+            };
         }
-        return errors;
+
+        return Object.keys(errors).length > 0 ? errors : null;
     }
 
     togglePassword(): void {
