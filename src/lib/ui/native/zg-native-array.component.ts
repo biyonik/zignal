@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { ArrayField, ArrayFieldState, ArrayItemState } from '../../fields/array.field';
 import { ZgAutoFieldComponent } from './zg-auto-field.component';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/types/drag-drop';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import {FormsModule} from "@angular/forms";
 
 /**
