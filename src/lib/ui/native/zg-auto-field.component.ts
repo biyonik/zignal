@@ -4,7 +4,7 @@ import {
     forwardRef,
     signal,
     computed,
-    input,
+    input
 } from '@angular/core';
 import {
     ControlValueAccessor,
@@ -19,60 +19,27 @@ import { StringField, StringFieldConfig } from '../../fields/string.field';
 import { NumberField, NumberFieldConfig } from '../../fields/number.field';
 import { BooleanField } from '../../fields/boolean.field';
 import { SelectField, SelectFieldConfig, SelectOption } from '../../fields/select.field';
+import { MultiselectField, MultiselectFieldConfig } from '../../fields/multiselect.field';
 import { TextareaField, TextareaFieldConfig } from '../../fields/textarea.field';
 import { PasswordField, PasswordFieldConfig } from '../../fields/password.field';
 import { EmailField } from '../../fields/email.field';
 import { UrlField } from '../../fields/url.field';
 import { PhoneField, PhoneFieldConfig } from '../../fields/phone.field';
 import { ColorField, ColorFieldConfig } from '../../fields/color.field';
+import { DateField, DateFieldConfig } from '../../fields/date.field';
+import { FileField, FileFieldConfig, FileInfo } from '../../fields/file.field';
 
 /**
  * @fileoverview
  * TR: Field tipine göre otomatik UI render eden bileşen.
- * Vanilla HTML elementleri kullanır, herhangi bir UI framework gerektirmez.
- * Signal-first yaklaşım ile reaktif state yönetimi.
- *
  * EN: Component that automatically renders UI based on field type.
- * Uses vanilla HTML elements, doesn't require any UI framework.
- * Signal-first approach for reactive state management.
- *
- * @author Ahmet ALTUN <ahmet.altun60@gmail.com>
- * @see https://github.com/biyonik/zignal
- */
-
-/**
- * TR: Field tipine göre otomatik olarak doğru input'u render eden bileşen.
- *
- * Desteklenen tipler:
- * - StringField → input[type="text"]
- * - PasswordField → input[type="password"]
- * - EmailField → input[type="email"]
- * - UrlField → input[type="url"]
- * - PhoneField → input[type="tel"]
- * - NumberField → input[type="number"]
- * - BooleanField → input[type="checkbox"]
- * - SelectField → select
- * - TextareaField → textarea
- * - ColorField → input[type="color"]
- *
- * EN: Component that automatically renders the correct input based on field type.
- *
- * @example
- * ```html
- * <zg-auto-field
- *   [field]="emailField"
- *   formControlName="email"
- *   [showLabel]="true"
- *   [showErrors]="true"
- * />
- * ```
  */
 @Component({
     selector: 'zg-auto-field',
     standalone: true,
     imports: [],
     template: `
-        @if (showLabel() && field()) {
+        @if (showLabel() && field() && fieldType() !== 'boolean') {
             <label [for]="field().name" class="zg-label">
                 {{ field().label }}
                 @if (field().config.required) {
@@ -99,22 +66,31 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
             }
 
             @case ('password') {
-                <input
-                    [id]="field().name"
-                    type="password"
-                    [value]="value() ?? ''"
-                    [placeholder]="field().config.placeholder ?? ''"
-                    [disabled]="isDisabled()"
-                    [readonly]="field().config.readonly ?? false"
-                    [required]="field().config.required ?? false"
-                    [attr.minlength]="passwordConfig()?.minLength"
-                    [attr.maxlength]="passwordConfig()?.maxLength"
-                    (input)="onInput($event)"
-                    (blur)="onBlur()"
-                    class="zg-input"
-                    [class.zg-input--error]="hasError()"
-                    autocomplete="new-password"
-                />
+                <div class="zg-password-wrapper">
+                    <input
+                        [id]="field().name"
+                        [type]="showPassword() ? 'text' : 'password'"
+                        [value]="value() ?? ''"
+                        [placeholder]="field().config.placeholder ?? ''"
+                        [disabled]="isDisabled()"
+                        [readonly]="field().config.readonly ?? false"
+                        [required]="field().config.required ?? false"
+                        [attr.minlength]="passwordConfig()?.minLength"
+                        [attr.maxlength]="passwordConfig()?.maxLength"
+                        (input)="onInput($event)"
+                        (blur)="onBlur()"
+                        class="zg-input"
+                        [class.zg-input--error]="hasError()"
+                        autocomplete="new-password"
+                    />
+                    <button 
+                        type="button" 
+                        class="zg-password-toggle"
+                        (click)="togglePassword()"
+                        [disabled]="isDisabled()">
+                        {{ showPassword() ? '🙈' : '👁️' }}
+                    </button>
+                </div>
                 @if (passwordConfig()?.showStrength !== false && value()) {
                     <div class="zg-password-strength">
                         <div class="zg-password-strength-bar"
@@ -124,6 +100,7 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
                              [class.zg-strength-good]="passwordStrength() > 50 && passwordStrength() <= 75"
                              [class.zg-strength-strong]="passwordStrength() > 75">
                         </div>
+                        <span class="zg-strength-text">{{ passwordStrengthText() }}</span>
                     </div>
                 }
             }
@@ -247,7 +224,27 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
                         (blur)="onBlur()"
                     />
                     <span class="zg-checkbox-label">{{ field().label }}</span>
+                    @if (field().config.required) {
+                        <span class="zg-required">*</span>
+                    }
                 </label>
+            }
+
+            @case ('date') {
+                <input
+                    [id]="field().name"
+                    type="date"
+                    [value]="dateValue()"
+                    [min]="dateMin()"
+                    [max]="dateMax()"
+                    [disabled]="isDisabled()"
+                    [readonly]="field().config.readonly ?? false"
+                    [required]="field().config.required ?? false"
+                    (input)="onDateInput($event)"
+                    (blur)="onBlur()"
+                    class="zg-input"
+                    [class.zg-input--error]="hasError()"
+                />
             }
 
             @case ('select') {
@@ -261,13 +258,57 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
                     class="zg-select"
                     [class.zg-select--error]="hasError()"
                 >
-                    @if (selectConfig()?.clearable) {
+                    @if (selectConfig()?.clearable !== false) {
                         <option value="">{{ selectConfig()?.placeholder ?? 'Seçiniz...' }}</option>
                     }
                     @for (option of selectOptions(); track option.value) {
-                        <option [value]="option.value" [disabled]="option.disabled">{{ option.label }}</option>
+                        @if (option.group) {
+                            <!-- Grouped options handled separately -->
+                        } @else {
+                            <option [value]="option.value" [disabled]="option.disabled">
+                                {{ option.label }}
+                            </option>
+                        }
                     }
                 </select>
+            }
+
+            @case ('multiselect') {
+                <div class="zg-multiselect" [class.zg-multiselect--error]="hasError()">
+                    <div class="zg-multiselect-selected">
+                        @for (val of multiselectValue(); track val) {
+                            <span class="zg-multiselect-chip">
+                                {{ getOptionLabel(val) }}
+                                <button type="button" 
+                                        class="zg-multiselect-chip-remove"
+                                        (click)="removeMultiselectValue(val)"
+                                        [disabled]="isDisabled()">×</button>
+                            </span>
+                        }
+                    </div>
+                    <select
+                        [id]="field().name"
+                        [disabled]="isDisabled() || isMaxSelected()"
+                        (change)="onMultiselectAdd($event)"
+                        (blur)="onBlur()"
+                        class="zg-select"
+                    >
+                        <option value="">{{ multiselectPlaceholder() }}</option>
+                        @for (option of availableMultiselectOptions(); track option.value) {
+                            <option [value]="option.value" [disabled]="option.disabled">
+                                {{ option.label }}
+                            </option>
+                        }
+                    </select>
+                    @if (multiselectConfig()?.showSelectAll && availableMultiselectOptions().length > 0) {
+                        <button type="button" 
+                                class="zg-multiselect-select-all"
+                                (click)="selectAllMultiselect()"
+                                [disabled]="isDisabled()">
+                            Tümünü Seç
+                        </button>
+                    }
+                </div>
             }
 
             @case ('textarea') {
@@ -279,11 +320,74 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
                     [readonly]="field().config.readonly ?? false"
                     [required]="field().config.required ?? false"
                     [rows]="textareaConfig()?.rows ?? 3"
+                    [attr.maxlength]="textareaConfig()?.maxLength"
                     (input)="onInput($event)"
                     (blur)="onBlur()"
                     class="zg-textarea"
                     [class.zg-textarea--error]="hasError()"
                 ></textarea>
+                @if (textareaConfig()?.maxLength) {
+                    <div class="zg-char-count">
+                        {{ textareaCharCount() }} / {{ textareaConfig()?.maxLength }}
+                    </div>
+                }
+            }
+
+            @case ('file') {
+                <div class="zg-file-field" [class.zg-file-field--error]="hasError()">
+                    <input
+                        #fileInput
+                        [id]="field().name"
+                        type="file"
+                        [accept]="fileAccept()"
+                        [multiple]="fileConfig()?.multiple ?? false"
+                        [disabled]="isDisabled()"
+                        (change)="onFileChange($event)"
+                        class="zg-file-input"
+                    />
+                    <label [for]="field().name" class="zg-file-label">
+                        <span class="zg-file-icon">📁</span>
+                        <span class="zg-file-text">
+                            {{ fileConfig()?.multiple ? 'Dosyaları seçin veya sürükleyin' : 'Dosya seçin veya sürükleyin' }}
+                        </span>
+                    </label>
+                    
+                    @if (fileValue()) {
+                        <div class="zg-file-preview">
+                            @if (isFileArray()) {
+                                @for (file of fileValueArray(); track file.name) {
+                                    <div class="zg-file-item">
+                                        @if (isImageFile(file)) {
+                                            <img [src]="file.preview" [alt]="file.name" class="zg-file-thumb" />
+                                        } @else {
+                                            <span class="zg-file-icon-small">{{ getFileIcon(file) }}</span>
+                                        }
+                                        <span class="zg-file-name">{{ file.name }}</span>
+                                        <span class="zg-file-size">{{ formatFileSize(file.size) }}</span>
+                                        <button type="button" 
+                                                class="zg-file-remove"
+                                                (click)="removeFile(file)"
+                                                [disabled]="isDisabled()">×</button>
+                                    </div>
+                                }
+                            } @else {
+                                <div class="zg-file-item">
+                                    @if (isImageFile(fileValueSingle()!)) {
+                                        <img [src]="fileValueSingle()!.preview" [alt]="fileValueSingle()!.name" class="zg-file-thumb" />
+                                    } @else {
+                                        <span class="zg-file-icon-small">{{ getFileIcon(fileValueSingle()!) }}</span>
+                                    }
+                                    <span class="zg-file-name">{{ fileValueSingle()!.name }}</span>
+                                    <span class="zg-file-size">{{ formatFileSize(fileValueSingle()!.size) }}</span>
+                                    <button type="button" 
+                                            class="zg-file-remove"
+                                            (click)="clearFile()"
+                                            [disabled]="isDisabled()">×</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             }
 
             @default {
@@ -310,8 +414,12 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
     `,
     styles: [`
         :host { display: block; margin-bottom: 1rem; }
+        
+        /* Labels */
         .zg-label { display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.875rem; }
         .zg-required { color: #dc2626; margin-left: 0.125rem; }
+        
+        /* Inputs */
         .zg-input, .zg-select, .zg-textarea {
             width: 100%;
             padding: 0.5rem 0.75rem;
@@ -319,6 +427,7 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
             border-radius: 0.375rem;
             font-size: 1rem;
             transition: border-color 0.15s, box-shadow 0.15s;
+            background-color: white;
         }
         .zg-input:focus, .zg-select:focus, .zg-textarea:focus {
             outline: none;
@@ -330,29 +439,52 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
             background-color: #f3f4f6;
             cursor: not-allowed;
         }
+        
+        /* Checkbox */
         .zg-checkbox { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-        .zg-checkbox input { width: 1rem; height: 1rem; }
+        .zg-checkbox input { width: 1rem; height: 1rem; cursor: pointer; }
+        
+        /* Hint & Error */
         .zg-hint { color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem; }
         .zg-error { color: #dc2626; font-size: 0.75rem; margin-top: 0.25rem; }
+        .zg-char-count { color: #6b7280; font-size: 0.75rem; text-align: right; margin-top: 0.25rem; }
 
-        /* Password strength indicator */
+        /* Password */
+        .zg-password-wrapper { position: relative; display: flex; }
+        .zg-password-wrapper .zg-input { padding-right: 2.5rem; }
+        .zg-password-toggle {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.25rem;
+        }
         .zg-password-strength {
             height: 4px;
             background: #e5e7eb;
             border-radius: 2px;
-            margin-top: 0.25rem;
+            margin-top: 0.5rem;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .zg-password-strength-bar {
             height: 100%;
             transition: width 0.3s, background-color 0.3s;
+            flex-shrink: 0;
         }
         .zg-strength-weak { background-color: #dc2626; }
         .zg-strength-fair { background-color: #f59e0b; }
         .zg-strength-good { background-color: #10b981; }
         .zg-strength-strong { background-color: #059669; }
+        .zg-strength-text { font-size: 0.7rem; color: #6b7280; white-space: nowrap; }
 
-        /* Color field */
+        /* Color */
         .zg-color-field { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
         .zg-color-input {
             width: 3rem;
@@ -375,6 +507,92 @@ import { ColorField, ColorFieldConfig } from '../../fields/color.field';
         .zg-color-preset:hover { border-color: #9ca3af; }
         .zg-color-preset--selected { border-color: #3b82f6; }
         .zg-color-preset:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Multiselect */
+        .zg-multiselect { display: flex; flex-direction: column; gap: 0.5rem; }
+        .zg-multiselect-selected { display: flex; flex-wrap: wrap; gap: 0.25rem; min-height: 1.5rem; }
+        .zg-multiselect-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.125rem 0.5rem;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+        }
+        .zg-multiselect-chip-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            color: #6b7280;
+            padding: 0;
+        }
+        .zg-multiselect-chip-remove:hover { color: #dc2626; }
+        .zg-multiselect-select-all {
+            align-self: flex-start;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        .zg-multiselect--error .zg-select { border-color: #dc2626; }
+
+        /* File */
+        .zg-file-field { }
+        .zg-file-input { 
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+        .zg-file-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: border-color 0.15s, background-color 0.15s;
+        }
+        .zg-file-label:hover {
+            border-color: #3b82f6;
+            background-color: #f0f9ff;
+        }
+        .zg-file-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .zg-file-text { color: #6b7280; font-size: 0.875rem; }
+        .zg-file-preview { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .zg-file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb;
+            border-radius: 0.375rem;
+        }
+        .zg-file-thumb { width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: 0.25rem; }
+        .zg-file-icon-small { font-size: 1.5rem; }
+        .zg-file-name { flex: 1; font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .zg-file-size { font-size: 0.75rem; color: #6b7280; }
+        .zg-file-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: #6b7280;
+            padding: 0.25rem;
+        }
+        .zg-file-remove:hover { color: #dc2626; }
+        .zg-file-field--error .zg-file-label { border-color: #dc2626; }
     `],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [
@@ -393,6 +611,15 @@ export class ZgAutoFieldComponent<T = unknown>
     readonly value = signal<T | null>(null);
     readonly isDisabled = signal(false);
     readonly isTouched = signal(false);
+    readonly showPassword = signal(false);
+
+    readonly textareaCharCount = computed((): number => {
+        const val = this.value();
+        if (typeof val === 'string') {
+            return val.length;
+        }
+        return 0;
+    });
 
     readonly fieldType = computed(() => {
         const f = this.field();
@@ -401,6 +628,9 @@ export class ZgAutoFieldComponent<T = unknown>
         if (f instanceof UrlField) return 'url';
         if (f instanceof PhoneField) return 'phone';
         if (f instanceof ColorField) return 'color';
+        if (f instanceof DateField) return 'date';
+        if (f instanceof FileField) return 'file';
+        if (f instanceof MultiselectField) return 'multiselect';
         if (f instanceof StringField) return 'string';
         if (f instanceof NumberField) return 'number';
         if (f instanceof BooleanField) return 'boolean';
@@ -422,23 +652,23 @@ export class ZgAutoFieldComponent<T = unknown>
 
     readonly passwordConfig = computed((): PasswordFieldConfig | null => {
         const f = this.field();
-        return f instanceof PasswordField ? (f as unknown as PasswordField).config : null;
+        return f instanceof PasswordField ? (f as PasswordField).config : null;
     });
 
     readonly phoneConfig = computed((): PhoneFieldConfig | null => {
         const f = this.field();
-        return f instanceof PhoneField ? (f as unknown as PhoneField).config : null;
+        return f instanceof PhoneField ? (f as PhoneField).config : null;
     });
 
     readonly colorConfig = computed((): ColorFieldConfig | null => {
         const f = this.field();
-        return f instanceof ColorField ? (f as unknown as ColorField).config : null;
+        return f instanceof ColorField ? (f as ColorField).config : null;
     });
 
     readonly selectConfig = computed((): SelectFieldConfig<T> | null => {
         const f = this.field();
         if (f instanceof SelectField) {
-            return f.config;
+            return f.config as SelectFieldConfig<T>;
         }
         return null;
     });
@@ -446,7 +676,7 @@ export class ZgAutoFieldComponent<T = unknown>
     readonly selectOptions = computed((): SelectOption<T>[] => {
         const f = this.field();
         if (f instanceof SelectField) {
-            return f.config.options ?? [];
+            return (f.config as SelectFieldConfig<T>).options ?? [];
         }
         return [];
     });
@@ -454,6 +684,21 @@ export class ZgAutoFieldComponent<T = unknown>
     readonly textareaConfig = computed((): TextareaFieldConfig | null =>
         this.field() instanceof TextareaField ? this.field().config : null,
     );
+
+    readonly multiselectConfig = computed((): MultiselectFieldConfig<unknown> | null => {
+        const f = this.field();
+        return f instanceof MultiselectField ? f.config : null;
+    });
+
+    readonly fileConfig = computed((): FileFieldConfig | null => {
+        const f = this.field();
+        return f instanceof FileField ? f.config : null;
+    });
+
+    readonly dateConfig = computed((): DateFieldConfig | null => {
+        const f = this.field();
+        return f instanceof DateField ? f.config : null;
+    });
 
     readonly passwordStrength = computed((): number => {
         const f = this.field();
@@ -463,12 +708,102 @@ export class ZgAutoFieldComponent<T = unknown>
         return 0;
     });
 
+    readonly passwordStrengthText = computed((): string => {
+        const strength = this.passwordStrength();
+        if (strength <= 25) return 'Zayıf';
+        if (strength <= 50) return 'Orta';
+        if (strength <= 75) return 'İyi';
+        return 'Güçlü';
+    });
+
     readonly phonePlaceholder = computed((): string => {
         const f = this.field();
         if (f instanceof PhoneField) {
             return f.getExample();
         }
         return '';
+    });
+
+    // Date helpers
+    readonly dateValue = computed((): string => {
+        const val = this.value();
+        if (val instanceof Date) {
+            return val.toISOString().split('T')[0];
+        }
+        return '';
+    });
+
+    readonly dateMin = computed((): string | null => {
+        const config = this.dateConfig();
+        if (config?.minToday) {
+            return new Date().toISOString().split('T')[0];
+        }
+        if (config?.min) {
+            return config.min.toISOString().split('T')[0];
+        }
+        return null;
+    });
+
+    readonly dateMax = computed((): string | null => {
+        const config = this.dateConfig();
+        if (config?.maxToday) {
+            return new Date().toISOString().split('T')[0];
+        }
+        if (config?.max) {
+            return config.max.toISOString().split('T')[0];
+        }
+        return null;
+    });
+
+    // Multiselect helpers
+    readonly multiselectValue = computed((): unknown[] => {
+        const val = this.value();
+        return Array.isArray(val) ? val : [];
+    });
+
+    readonly availableMultiselectOptions = computed(() => {
+        const config = this.multiselectConfig();
+        if (!config) return [];
+        const selected = this.multiselectValue();
+        return config.options.filter(opt => !selected.includes(opt.value) && !opt.disabled);
+    });
+
+    readonly isMaxSelected = computed((): boolean => {
+        const config = this.multiselectConfig();
+        if (!config?.maxSelections) return false;
+        return this.multiselectValue().length >= config.maxSelections;
+    });
+
+    readonly multiselectPlaceholder = computed((): string => {
+        if (this.isMaxSelected()) return 'Maksimum seçim sayısına ulaşıldı';
+        return 'Seçim ekle...';
+    });
+
+    // File helpers
+    readonly fileAccept = computed((): string => {
+        const f = this.field();
+        if (f instanceof FileField) {
+            return f.getAcceptAttribute();
+        }
+        return '';
+    });
+
+    readonly fileValue = computed((): FileInfo | FileInfo[] | null => {
+        return this.value() as FileInfo | FileInfo[] | null;
+    });
+
+    readonly isFileArray = computed((): boolean => {
+        return Array.isArray(this.fileValue());
+    });
+
+    readonly fileValueArray = computed((): FileInfo[] => {
+        const val = this.fileValue();
+        return Array.isArray(val) ? val : [];
+    });
+
+    readonly fileValueSingle = computed((): FileInfo | null => {
+        const val = this.fileValue();
+        return Array.isArray(val) ? null : val;
     });
 
     private readonly validationResult = computed(() =>
@@ -516,6 +851,10 @@ export class ZgAutoFieldComponent<T = unknown>
         return errors;
     }
 
+    togglePassword(): void {
+        this.showPassword.update(v => !v);
+    }
+
     onInput(event: Event): void {
         const value = (event.target as HTMLInputElement).value as T;
         this.value.set(value);
@@ -536,9 +875,23 @@ export class ZgAutoFieldComponent<T = unknown>
     }
 
     onSelectChange(event: Event): void {
-        const value = (event.target as HTMLSelectElement).value as T;
+        const rawValue = (event.target as HTMLSelectElement).value;
+        // Handle empty string for clearable selects
+        const value = rawValue === '' ? null : rawValue as T;
         this.value.set(value);
         this.onChange(value);
+    }
+
+    onDateInput(event: Event): void {
+        const dateStr = (event.target as HTMLInputElement).value;
+        if (!dateStr) {
+            this.value.set(null);
+            this.onChange(null);
+            return;
+        }
+        const date = new Date(dateStr) as T;
+        this.value.set(date);
+        this.onChange(date);
     }
 
     onColorInput(event: Event): void {
@@ -551,6 +904,144 @@ export class ZgAutoFieldComponent<T = unknown>
         const value = preset as T;
         this.value.set(value);
         this.onChange(value);
+    }
+
+    // Multiselect methods
+    getOptionLabel(value: unknown): string {
+        const config = this.multiselectConfig();
+        if (!config) return String(value);
+        const option = config.options.find(opt => opt.value === value);
+        return option?.label ?? String(value);
+    }
+
+    onMultiselectAdd(event: Event): void {
+        const select = event.target as HTMLSelectElement;
+        const newValue = select.value;
+        if (!newValue) return;
+
+        const current = this.multiselectValue();
+        // Type coercion based on existing values or config
+        const config = this.multiselectConfig();
+        const option = config?.options.find(opt => String(opt.value) === newValue);
+        const typedValue = option?.value ?? newValue;
+
+        if (!current.includes(typedValue)) {
+            const updated = [...current, typedValue] as T;
+            this.value.set(updated);
+            this.onChange(updated);
+        }
+        select.value = ''; // Reset select
+    }
+
+    removeMultiselectValue(valueToRemove: unknown): void {
+        const current = this.multiselectValue();
+        const updated = current.filter(v => v !== valueToRemove) as T;
+        this.value.set(updated);
+        this.onChange(updated);
+    }
+
+    selectAllMultiselect(): void {
+        const config = this.multiselectConfig();
+        if (!config) return;
+        const allValues = config.options
+            .filter(opt => !opt.disabled)
+            .map(opt => opt.value);
+
+        // Respect max if set
+        const max = config.maxSelections;
+        const limited = max ? allValues.slice(0, max) : allValues;
+
+        this.value.set(limited as T);
+        this.onChange(limited as T);
+    }
+
+    // File methods
+    async onFileChange(event: Event): Promise<void> {
+        const input = event.target as HTMLInputElement;
+        const files = input.files;
+        if (!files || files.length === 0) return;
+
+        const f = this.field();
+        if (!(f instanceof FileField)) return;
+
+        const config = this.fileConfig();
+        const fileInfos: FileInfo[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const preview = await this.createFilePreview(file);
+            fileInfos.push(f.createFileInfo(file, preview ?? undefined));
+        }
+
+        if (config?.multiple) {
+            const current = this.fileValueArray();
+            const updated = [...current, ...fileInfos] as T;
+            this.value.set(updated);
+            this.onChange(updated);
+        } else {
+            const value = fileInfos[0] as T;
+            this.value.set(value);
+            this.onChange(value);
+        }
+
+        // Reset input
+        input.value = '';
+    }
+
+    private createFilePreview(file: File): Promise<string | null> {
+        return new Promise((resolve) => {
+            if (!file.type.startsWith('image/')) {
+                resolve(null);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    removeFile(fileToRemove: FileInfo): void {
+        const current = this.fileValueArray();
+        const updated = current.filter(f => f.name !== fileToRemove.name) as T;
+        this.value.set(updated);
+        this.onChange(updated);
+    }
+
+    clearFile(): void {
+        this.value.set(null);
+        this.onChange(null);
+    }
+
+    isImageFile(file: FileInfo): boolean {
+        return file.type.startsWith('image/');
+    }
+
+    getFileIcon(file: FileInfo): string {
+        const f = this.field();
+        if (f instanceof FileField) {
+            const iconName = f.getFileIcon(file);
+            const icons: Record<string, string> = {
+                image: '🖼️',
+                video: '🎬',
+                audio: '🎵',
+                pdf: '📄',
+                document: '📝',
+                spreadsheet: '📊',
+                archive: '📦',
+                file: '📁'
+            };
+            return icons[iconName] ?? '📁';
+        }
+        return '📁';
+    }
+
+    formatFileSize(bytes: number): string {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
     onBlur(): void {

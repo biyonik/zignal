@@ -149,6 +149,7 @@ export {
 
     FileField,
     FileFieldConfig,
+    FileInfo,
 
     GroupField,
     GroupFieldConfig,
@@ -205,8 +206,13 @@ export {
 } from './lib/forms';
 
 export {
-    ZgAutoFieldComponent
+    ZgAutoFieldComponent,
+    ZgNativeGroupComponent,
+    ZgNativeArrayComponent,
+    ZgFormRendererComponent,
+    FormRendererConfig,
 } from './lib/ui/native';
+
 
 // =============================================================================
 // TR: UI Adapters - UI Adaptörleri

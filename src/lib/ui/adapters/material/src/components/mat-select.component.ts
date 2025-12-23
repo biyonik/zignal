@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { BaseMatField } from '../base-mat-field';
-import { SelectFieldConfig, SelectOption } from '@biyonik/zignal';
+import { SelectFieldConfig } from '@biyonik/zignal';
 
 @Component({
     selector: 'zg-mat-select',

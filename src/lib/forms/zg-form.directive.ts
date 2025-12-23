@@ -1,248 +1,251 @@
 import {
-  Directive,
-  Input,
-  Output,
-  EventEmitter,
-  OnInit
+    Directive,
+    Input,
+    Output,
+    EventEmitter,
+    OnInit,
+    OnDestroy,
+    effect,
+    inject,
+    DestroyRef,
 } from '@angular/core';
 import {
-  FormGroup,
-  FormControl,
-  AbstractControl,
-  ValidationErrors,
+    FormGroup,
+    FormControl,
+    AbstractControl,
+    ValidationErrors,
 } from '@angular/forms';
-import { FormSchema, FormState } from '../core/form-state';
+import { FormSchema, FormState, FormDataType } from '../core/form-state';
 import { IField } from '../core/interfaces';
 
 /**
- * @fileoverview
- * TR: FormSchema'dan otomatik Angular FormGroup oluşturan directive.
- * Zod validasyonlarını Angular validators'a dönüştürür.
- *
- * EN: Directive that automatically creates Angular FormGroup from FormSchema.
- * Converts Zod validations to Angular validators.
- *
- * @author Ahmet ALTUN <ahmet.altun60@gmail.com>
- * @see https://github.com/biyonik/zignal
- */
-
-/**
  * TR: Zod schema'yı Angular validator fonksiyonuna dönüştürür.
- *
- * EN: Converts Zod schema to Angular validator function.
- *
- * @param field - TR: Zignal field / EN: Zignal field
- * @returns TR: Angular validator fonksiyonu / EN: Angular validator function
  */
 export function zodValidator<T>(field: IField<T>) {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const result = field.schema().safeParse(control.value);
+    return (control: AbstractControl): ValidationErrors | null => {
+        const result = field.schema().safeParse(control.value);
+        if (result.success) return null;
 
-    if (result.success) {
-      return null;
-    }
-
-    const errors: ValidationErrors = {};
-    for (const error of result.error.errors) {
-      errors[error.code || 'zodError'] = {
-        message: error.message,
-        path: error.path,
-      };
-    }
-
-    return errors;
-  };
+        const errors: ValidationErrors = {};
+        for (const error of result.error.errors) {
+            errors[error.code || 'zodError'] = {
+                message: error.message,
+                path: error.path,
+            };
+        }
+        return errors;
+    };
 }
 
 /**
- * TR: FormSchema'dan Angular FormGroup oluşturan yardımcı fonksiyon.
- *
- * EN: Helper function to create Angular FormGroup from FormSchema.
- *
- * @param schema - TR: Zignal FormSchema / EN: Zignal FormSchema
- * @param initialValues - TR: Başlangıç değerleri / EN: Initial values
- * @returns TR: Angular FormGroup / EN: Angular FormGroup
- *
- * @example
- * ```typescript
- * const userSchema = new FormSchema<UserForm>([
- *   new StringField('email', 'E-posta', { required: true, email: true }),
- *   new NumberField('age', 'Yaş', { min: 18 })
- * ]);
- *
- * const form = createFormGroup(userSchema, { email: '', age: null });
- * ```
+ * TR: FormSchema'dan Angular FormGroup oluşturur.
  */
-export function createFormGroup<T extends Record<string, unknown>>(
-  schema: FormSchema<T>,
-  initialValues?: Partial<T>
+export function createFormGroup<T extends FormDataType>(
+    schema: FormSchema<T>,
+    initialValues?: Partial<T>
 ): FormGroup {
-  const controls: Record<string, FormControl> = {};
+    const controls: Record<string, FormControl> = {};
 
-  for (const field of schema.getFields()) {
-    const initialValue = initialValues?.[field.name as keyof T] ?? null;
+    for (const field of schema.getFields()) {
+        const initialValue = initialValues?.[field.name as keyof T] ?? null;
+        controls[field.name] = new FormControl(initialValue, {
+            validators: [zodValidator(field)],
+            updateOn: 'change',
+        });
+    }
 
-    controls[field.name] = new FormControl(initialValue, {
-      validators: [zodValidator(field)],
-      updateOn: 'change',
-    });
-  }
-
-  return new FormGroup(controls);
+    return new FormGroup(controls);
 }
 
 /**
- * TR: FormGroup'u FormSchema ile senkronize tutan directive.
- *
- * EN: Directive that keeps FormGroup synchronized with FormSchema.
+ * TR: Senkronizasyon modu.
+ */
+export type SyncMode = 'zignal' | 'angular' | 'bidirectional';
+
+/**
+ * TR: FormSchema ile çalışan ve senkronizasyon sağlayan directive.
  *
  * @example
  * ```html
- * <form [zgForm]="userSchema" (formReady)="onFormReady($event)">
- *   <input formControlName="email" />
- *   <input formControlName="age" type="number" />
- *   <button type="submit">Kaydet</button>
- * </form>
+ * <!-- Zignal-first (önerilen) -->
+ * <form [zgForm]="schema" [formState]="formState" (zgSubmit)="onSubmit($event)">
+ *
+ * <!-- Angular Forms ile birlikte -->
+ * <form [zgForm]="schema" [formGroup]="myFormGroup" syncMode="bidirectional">
  * ```
  */
 @Directive({
-  selector: '[zgForm]',
-  standalone: true,
-  exportAs: 'zgForm',
+    selector: '[zgForm]',
+    standalone: true,
+    exportAs: 'zgForm',
 })
-export class ZgFormDirective<T extends Record<string, unknown>> implements OnInit {
+export class ZgFormDirective<T extends FormDataType> implements OnInit, OnDestroy {
+    private readonly destroyRef = inject(DestroyRef);
+
     /**
      * TR: Bağlanacak FormSchema.
-   *
-   * EN: FormSchema to bind.
-   */
-  @Input({ required: true, alias: 'zgForm' }) schema!: FormSchema<T>;
+     */
+    @Input({ required: true, alias: 'zgForm' }) schema!: FormSchema<T>;
 
-  /**
-   * TR: Başlangıç değerleri.
-   *
-   * EN: Initial values.
-   */
-  @Input() initialValues?: Partial<T>;
+    /**
+     * TR: Zignal FormState (dışarıdan verilebilir veya otomatik oluşturulur).
+     */
+    @Input() formState?: FormState<T>;
 
-  /**
-   * TR: FormGroup hazır olduğunda emit edilir.
-   *
-   * EN: Emitted when FormGroup is ready.
-   */
-  @Output() formReady = new EventEmitter<FormGroup>();
+    /**
+     * TR: Angular FormGroup (opsiyonel - Angular Forms entegrasyonu için).
+     */
+    @Input() formGroup?: FormGroup;
 
-  /**
-   * TR: Form submit edildiğinde emit edilir (valid ise).
-   *
-   * EN: Emitted when form is submitted (if valid).
-   */
-  @Output() formSubmit = new EventEmitter<T>();
+    /**
+     * TR: Başlangıç değerleri.
+     */
+    @Input() initialValues?: Partial<T>;
 
-  /**
-   * TR: Oluşturulan FormGroup.
-   *
-   * EN: Created FormGroup.
-   */
-  formGroup!: FormGroup;
+    /**
+     * TR: Senkronizasyon modu.
+     * - 'zignal': Zignal → Angular (tek yön)
+     * - 'angular': Angular → Zignal (tek yön)
+     * - 'bidirectional': İki yönlü
+     */
+    @Input() syncMode: SyncMode = 'zignal';
 
-  /**
-   * TR: Zignal FormState.
-   *
-   * EN: Zignal FormState.
-   */
-  formState!: FormState<T>;
+    /**
+     * TR: FormState hazır olduğunda emit edilir.
+     */
+    @Output() stateReady = new EventEmitter<FormState<T>>();
 
-  ngOnInit(): void {
-    this.initializeForm();
-  }
+    /**
+     * TR: FormGroup hazır olduğunda emit edilir.
+     */
+    @Output() formReady = new EventEmitter<FormGroup>();
 
-  /**
-   * TR: Form'u initialize eder.
-   *
-   * EN: Initializes the form.
-   */
-  private initializeForm(): void {
-    // TR: Angular FormGroup oluştur
-    // EN: Create Angular FormGroup
-    this.formGroup = createFormGroup(this.schema, this.initialValues);
+    /**
+     * TR: Form submit edildiğinde emit edilir (valid ise).
+     */
+    @Output() zgSubmit = new EventEmitter<T>();
 
-    // TR: Zignal FormState oluştur
-    // EN: Create Zignal FormState
-    this.formState = this.schema.createForm(this.initialValues);
+    private syncEffectCleanup?: () => void;
 
-    // TR: FormGroup'u emit et
-    // EN: Emit FormGroup
-    this.formReady.emit(this.formGroup);
-  }
-
-  /**
-   * TR: Form'u submit eder.
-   *
-   * EN: Submits the form.
-   */
-  submit(): void {
-    if (this.formGroup.valid) {
-      this.formSubmit.emit(this.formGroup.value as T);
-    } else {
-      this.markAllAsTouched();
-    }
-  }
-
-  /**
-   * TR: Tüm alanları touched olarak işaretler.
-   *
-   * EN: Marks all fields as touched.
-   */
-  markAllAsTouched(): void {
-    Object.values(this.formGroup.controls).forEach((control) => {
-      control.markAsTouched();
-    });
-  }
-
-  /**
-   * TR: Form'u sıfırlar.
-   *
-   * EN: Resets the form.
-   */
-  reset(values?: Partial<T>): void {
-    this.formGroup.reset(values ?? this.initialValues);
-  }
-
-  /**
-   * TR: Belirli bir alanın hata mesajını döner.
-   *
-   * EN: Returns error message for a specific field.
-   */
-  getErrorMessage(fieldName: string): string | null {
-    const control = this.formGroup.get(fieldName);
-    if (!control || !control.errors || !control.touched) {
-      return null;
+    ngOnInit(): void {
+        this.initializeStates();
+        this.setupSync();
     }
 
-    const firstError = Object.values(control.errors)[0];
-    if (typeof firstError === 'object' && 'message' in firstError) {
-      return firstError.message;
+    ngOnDestroy(): void {
+        this.syncEffectCleanup?.();
     }
 
-    return 'Geçersiz değer';
-  }
+    private initializeStates(): void {
+        // Zignal FormState yoksa oluştur
+        if (!this.formState) {
+            this.formState = this.schema.createForm(this.initialValues);
+        }
+        this.stateReady.emit(this.formState);
 
-  /**
-   * TR: Form'un valid olup olmadığını döner.
-   *
-   * EN: Returns whether form is valid.
-   */
-  get isValid(): boolean {
-    return this.formGroup.valid;
-  }
+        // Angular FormGroup yoksa ve gerekiyorsa oluştur
+        if (!this.formGroup && this.syncMode !== 'zignal') {
+            this.formGroup = createFormGroup(this.schema, this.initialValues);
+        }
+        if (this.formGroup) {
+            this.formReady.emit(this.formGroup);
+        }
+    }
 
-  /**
-   * TR: Form değerlerini döner.
-   *
-   * EN: Returns form values.
-   */
-  get values(): T {
-    return this.formGroup.value as T;
-  }
+    private setupSync(): void {
+        if (!this.formGroup || this.syncMode === 'zignal') {
+            return; // Sync gerekmiyor
+        }
+
+        // Zignal → Angular sync
+        // @ts-ignore
+        if (this.syncMode === 'zignal' || this.syncMode === 'bidirectional') {
+            const effectRef = effect(() => {
+                if (!this.formState || !this.formGroup) return;
+
+                const values = this.formState.values();
+                Object.entries(values).forEach(([key, value]) => {
+                    const control = this.formGroup!.get(key);
+                    if (control && control.value !== value) {
+                        control.setValue(value, { emitEvent: false });
+                    }
+                });
+            });
+
+            this.destroyRef.onDestroy(() => effectRef.destroy());
+        }
+
+        // Angular → Zignal sync
+        if (this.syncMode === 'angular' || this.syncMode === 'bidirectional') {
+            const subscription = this.formGroup.valueChanges.subscribe(values => {
+                if (!this.formState) return;
+
+                Object.entries(values).forEach(([key, value]) => {
+                    const fieldValue = this.formState!.fields[key as keyof T];
+                    if (fieldValue && fieldValue.value() !== value) {
+                        fieldValue.value.set(value as T[keyof T]);
+                    }
+                });
+            });
+
+            this.destroyRef.onDestroy(() => subscription.unsubscribe());
+        }
+    }
+
+    /**
+     * TR: Form'u submit eder.
+     */
+    async submit(): Promise<void> {
+        if (!this.formState) return;
+
+        const isValid = await this.formState.validateAll();
+
+        if (isValid) {
+            try {
+                const values = this.formState.getValues();
+                this.zgSubmit.emit(values);
+            } catch (error) {
+                console.error('Form validation failed:', error);
+            }
+        }
+    }
+
+    /**
+     * TR: Tüm alanları touched olarak işaretler.
+     */
+    touchAll(): void {
+        this.formState?.touchAll();
+
+        if (this.formGroup) {
+            Object.values(this.formGroup.controls).forEach(control => {
+                control.markAsTouched();
+            });
+        }
+    }
+
+    /**
+     * TR: Form'u sıfırlar.
+     */
+    reset(values?: Partial<T>): void {
+        this.formState?.reset(values);
+        this.formGroup?.reset(values ?? this.initialValues);
+    }
+
+    /**
+     * TR: Form'un valid olup olmadığını döner.
+     */
+    get isValid(): boolean {
+        return this.formState?.valid() ?? false;
+    }
+
+    /**
+     * TR: Form değerlerini döner.
+     */
+    get values(): T | null {
+        try {
+            return this.formState?.getValues() ?? null;
+        } catch {
+            return null;
+        }
+    }
 }

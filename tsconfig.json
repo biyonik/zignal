@@ -32,7 +32,7 @@
     ],
     "paths": {
       "@biyonik/zignal": ["src/public-api.ts"],
-      "@biyonik/zignal/material": ["src/lib/ui/adapters/material"]
+      "@biyonik/zignal/*": ["src/lib/*/"]
     }
   },
   "angularCompilerOptions": {
