@@ -24,16 +24,24 @@ import { IField } from '../core/interfaces';
 export function zodValidator<T>(field: IField<T>) {
     return (control: AbstractControl): ValidationErrors | null => {
         const result = field.schema().safeParse(control.value);
-        if (result.success) return null;
+
+        if (result.success) {
+            return null;
+        }
 
         const errors: ValidationErrors = {};
-        for (const error of result.error.errors) {
-            errors[error.code || 'zodError'] = {
-                message: error.message,
-                path: error.path,
+        // TR: Zod'da hata dizisi 'issues' property'sinde bulunur
+        // EN: In Zod, error array is in 'issues' property
+        const zodIssues = result.error?.issues ?? [];
+
+        for (const issue of zodIssues) {
+            errors[issue.code || 'zodError'] = {
+                message: issue.message,
+                path: issue.path,
             };
         }
-        return errors;
+
+        return Object.keys(errors).length > 0 ? errors : null;
     };
 }
 
