@@ -38,10 +38,10 @@
   },
   "homepage": "https://github.com/biyonik/zignal#readme",
   "peerDependencies": {
+    "@angular/cdk": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "@angular/common": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "@angular/core": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "@angular/forms": "^17.0.0 || ^18.0.0 || ^19.0.0",
-    "@angular/cdk": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "zod": "^3.22.0"
   },
   "peerDependenciesMeta": {

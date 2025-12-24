@@ -227,9 +227,16 @@ export abstract class BaseField<T> implements IField<T> {
          */
         const validationResult = computed(() => {
             const zodResult = this.schema().safeParse(value());
+            const zodIssues = zodResult.error?.issues ?? [];
 
             if (!zodResult.success) {
-                return { success: false, error: zodResult.error.errors[0]?.message ?? 'Geçersiz değer' };
+                // return { success: false, error: zodResult.error.errors[0]?.message ?? 'Geçersiz değer' };
+                for (const issue of zodIssues) {
+                    if (issue.message) {
+                        return { success: false, error: issue.message };
+                    }
+                }
+                return { success: false, error: 'Geçersiz değer' };
             }
 
             // Custom validator check
