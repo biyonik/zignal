@@ -1,4 +1,4 @@
-import { Component, forwardRef } from '@angular/core';
+import {ChangeDetectionStrategy, Component, forwardRef} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import { BaseNativeComponent } from './base-native.component';
@@ -8,6 +8,7 @@ import { JsonField } from '../../../fields/json.field';
     selector: 'zg-json',
     standalone: true,
     imports: [CommonModule],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

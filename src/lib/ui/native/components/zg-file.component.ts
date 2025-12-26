@@ -1,4 +1,4 @@
-import { Component, forwardRef, ElementRef, ViewChild } from '@angular/core';
+import {Component, forwardRef, ElementRef, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import { BaseNativeComponent } from './base-native.component';
@@ -8,6 +8,7 @@ import { FileField, FileInfo } from '../../../fields/file.field';
     selector: 'zg-file',
     standalone: true,
     imports: [CommonModule, NgOptimizedImage],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

@@ -13,3 +13,4 @@ export * from './zg-native-array.component';
 export * from './zg-form-renderer.component';
 
 export * from './components';
+export * from './registry';

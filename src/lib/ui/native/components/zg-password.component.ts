@@ -1,4 +1,4 @@
-import { Component, forwardRef, signal } from '@angular/core';
+import {ChangeDetectionStrategy, Component, forwardRef, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import { BaseNativeComponent } from './base-native.component';
@@ -20,6 +20,7 @@ import { PasswordField } from '../../../fields/password.field';
             multi: true,
         },
     ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="zg-field zg-password-field" [class]="cssClass()">
             <label *ngIf="field().label" [for]="field().name" class="zg-label">

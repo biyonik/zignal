@@ -1,4 +1,4 @@
-import {Component, forwardRef, ElementRef, ViewChild, OnDestroy} from '@angular/core';
+import {Component, forwardRef, ElementRef, ViewChild, OnDestroy, ChangeDetectionStrategy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import { BaseNativeComponent } from './base-native.component';
@@ -20,6 +20,7 @@ import { TagsField } from '../../../fields/tags.field';
             multi: true,
         },
     ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="zg-field zg-tags-field" [class]="cssClass">
             <label *ngIf="field().label" [for]="field().name" class="zg-label">
