@@ -164,7 +164,7 @@ interface PersistedData<T> {
  */
 export class FormPersistence<T extends FormDataType = FormDataType> {
     private readonly options: Required<FormPersistenceOptions>;
-    private readonly storage: Storage;
+    private readonly storage: Storage | null;
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
     private effectCleanup: (() => void) | null = null;
 
@@ -186,6 +186,11 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
             exclude: options.exclude ?? [],
             prefix: options.prefix ?? 'zignal_',
         };
+
+        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+            this.storage = null;
+            return;
+        }
 
         // TR: Storage seçimi
         // EN: Storage selection
@@ -235,6 +240,7 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
      * @param data - TR: Kaydedilecek form verisi / EN: Form data to save
      */
     save(data: T): void {
+        if (!this.storage) return;
         try {
             const filteredData = this.filterData(data);
 
@@ -244,11 +250,13 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
                 version: this.VERSION,
             };
 
-            this.storage.setItem(this.storageKey, JSON.stringify(persistedData));
+            this.storage?.setItem(this.storageKey, JSON.stringify(persistedData));
         } catch (error) {
-            // TR: Storage dolu veya erişim hatası
-            // EN: Storage full or access error
-            console.warn(`[Zignal] FormPersistence save failed:`, error);
+            if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+                console.warn(`[Zignal] FormPersistence: Storage quota exceeded for key "${this.storageKey}"`);
+            } else {
+                console.warn(`[Zignal] FormPersistence save failed:`, error);
+            }
         }
     }
 
@@ -259,8 +267,9 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
      * @returns TR: Kaydedilmiş veri veya null / EN: Saved data or null
      */
     load(): Partial<T> | null {
+        if (!this.storage) return null;
         try {
-            const raw = this.storage.getItem(this.storageKey);
+            const raw = this.storage?.getItem(this.storageKey);
             if (!raw) return null;
 
             const persisted: PersistedData<Partial<T>> = JSON.parse(raw);
@@ -277,9 +286,8 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
 
             return persisted.data;
         } catch (error) {
-            // TR: Parse hatası veya bozuk veri
-            // EN: Parse error or corrupted data
-            console.warn(`[Zignal] FormPersistence load failed:`, error);
+            console.warn(`[Zignal] FormPersistence load failed, clearing corrupted data:`, error);
+            this.clear();
             return null;
         }
     }
@@ -289,6 +297,7 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
      * EN: Clears data from storage.
      */
     clear(): void {
+        if (!this.storage) return;
         this.storage.removeItem(this.storageKey);
     }
 
@@ -296,7 +305,8 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
      * TR: Verinin var olup olmadığını kontrol eder.
      * EN: Checks if data exists.
      */
-    exists(): boolean {
+    exists(): boolean | undefined {
+        if (!this.storage) return;
         return this.storage.getItem(this.storageKey) !== null;
     }
 
@@ -305,13 +315,16 @@ export class FormPersistence<T extends FormDataType = FormDataType> {
      * EN: Returns data age (ms).
      */
     getAge(): number | null {
+        if (!this.storage) return null;
+
         try {
             const raw = this.storage.getItem(this.storageKey);
             if (!raw) return null;
 
             const persisted: PersistedData<unknown> = JSON.parse(raw);
             return Date.now() - persisted.timestamp;
-        } catch {
+        } catch (error) {
+            console.debug(`[Zignal] FormPersistence getAge failed:`, error);
             return null;
         }
     }
@@ -442,6 +455,8 @@ export function clearAllZignalPersistence(
     storage: StorageType = 'local',
     prefix: string = 'zignal_'
 ): void {
+    if (typeof window === 'undefined') return;
+
     const storageObj = storage === 'session' ? sessionStorage : localStorage;
     const keysToRemove: string[] = [];
 

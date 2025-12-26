@@ -281,7 +281,14 @@ export abstract class BaseField<T> implements IField<T> {
             return validationResult().error;
         });
 
-        return { value: wrappedValue, error, touched, valid };
+        const cleanup = () => {
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+                debounceTimer = null;
+            }
+        };
+
+        return { value: wrappedValue, error, touched, valid, cleanup };
     }
 
 

@@ -207,7 +207,10 @@ export class JsonField extends BaseField<Record<string, unknown>> {
             }
 
             return str;
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('circular')) {
+                return '[Döngüsel referans]';
+            }
             return '[Geçersiz JSON]';
         }
     }
@@ -224,7 +227,8 @@ export class JsonField extends BaseField<Record<string, unknown>> {
         if (value == null) return null;
         try {
             return JSON.stringify(value);
-        } catch {
+        } catch (error) {
+            console.debug(`[JsonField:${this.name}] toExport failed:`, error instanceof Error ? error.message : error);
             return null;
         }
     }
@@ -258,7 +262,8 @@ export class JsonField extends BaseField<Record<string, unknown>> {
                 if (typeof parsed === 'object' && !Array.isArray(parsed)) {
                     return parsed;
                 }
-            } catch {
+            } catch (error) {
+                console.debug(`[JsonField:${this.name}] fromImport parse failed:`, error instanceof Error ? error.message : error);
                 return null;
             }
         }
@@ -329,8 +334,9 @@ export class JsonField extends BaseField<Record<string, unknown>> {
                 return { value: null, error: 'JSON bir obje olmalı' };
             }
             return { value: parsed };
-        } catch {
-            return { value: null, error: 'Geçersiz JSON formatı' };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Geçersiz JSON formatı';
+            return { value: null, error: message };
         }
     }
 

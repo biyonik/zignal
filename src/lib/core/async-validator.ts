@@ -280,11 +280,11 @@ export class AsyncValidator<T = unknown> {
 
         const key = this.getCacheKey(value);
 
-        // TR: LRU: boyut aşıldıysa en eski öğeyi sil
-        // EN: LRU: remove oldest item if size exceeded
         if (this.cache.size >= this.options.cacheSize) {
             const firstKey = this.cache.keys().next().value;
-            if (firstKey) this.cache.delete(firstKey);
+            if (firstKey !== undefined) {
+                this.cache.delete(firstKey);
+            }
         }
 
         this.cache.set(key, {
