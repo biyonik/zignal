@@ -1,3 +1,5 @@
+import {FieldHooks} from "./field-hooks.interface";
+
 /**
  * TR: Değer fonksiyonu tipi - form değerlerini alıp boolean döner
  * EN: Value function type - takes form values and returns boolean
@@ -206,4 +208,10 @@ export interface FieldConfig {
      * disableExpression: (values) => values['status'] === 'locked'
      */
     disableExpression?: Expression;
+
+    /**
+     * TR: Field lifecycle hooks.
+     * EN: Field lifecycle hooks.
+     */
+    hooks?: FieldHooks;
 }

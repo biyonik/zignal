@@ -664,14 +664,10 @@ export class FormSchema<T extends FormDataType> {
         }
 
         // =========================================================================
-        // TR: Computed Signals
-        // EN: Computed Signals
+        // TR: Computed Signals (Hook'lardan önce tanımlanmalı)
+        // EN: Computed Signals (Must be defined before hooks)
         // =========================================================================
 
-        /**
-         * TR: Tüm form değerlerini döndüren computed signal.
-         * EN: Computed signal returning all form values.
-         */
         const values = computed(() => {
             const result: Record<string, unknown> = {};
             for (const [name, fv] of Object.entries(formFields)) {
@@ -681,9 +677,99 @@ export class FormSchema<T extends FormDataType> {
         });
 
         // =========================================================================
+        // TR: Hook Entegrasyonu
+        // EN: Hook Integration
+        // =========================================================================
+
+        const previousValues = new Map<string, unknown>();
+        for (const field of this.fields) {
+            const fv = formFields[field.name as keyof T];
+            if (fv) {
+                previousValues.set(field.name, fv.value());
+            }
+        }
+
+        for (const field of this.fields) {
+            const hooks = field.config.hooks;
+            if (!hooks) continue;
+
+            const fieldName = field.name;
+            const fv = formFields[fieldName as keyof T] as FieldValue<unknown>;
+            if (!fv) continue;
+
+            const originalValueSet = fv.value.set.bind(fv.value);
+            const originalTouchedSet = fv.touched.set.bind(fv.touched);
+
+            if (hooks.onChange) {
+                fv.value.set = (newValue: unknown) => {
+                    const prevValue = previousValues.get(fieldName);
+                    originalValueSet(newValue);
+                    previousValues.set(fieldName, newValue);
+
+                    if (prevValue !== newValue) {
+                        try {
+                            hooks.onChange!({
+                                fieldName,
+                                value: newValue,
+                                previousValue: prevValue,
+                                formValues: values(),
+                                fieldState: fv
+                            });
+                        } catch (err) {
+                            console.warn(`[Zignal] onChange hook failed for "${fieldName}":`, err);
+                        }
+                    }
+                };
+
+                const originalValueUpdate = fv.value.update.bind(fv.value);
+                fv.value.update = (fn: (value: unknown) => unknown) => {
+                    const prevValue = previousValues.get(fieldName);
+                    originalValueUpdate(fn);
+                    const newValue = fv.value();
+                    previousValues.set(fieldName, newValue);
+
+                    if (prevValue !== newValue) {
+                        try {
+                            hooks.onChange!({
+                                fieldName,
+                                value: newValue,
+                                previousValue: prevValue,
+                                formValues: values(),
+                                fieldState: fv
+                            });
+                        } catch (err) {
+                            console.warn(`[Zignal] onChange hook failed for "${fieldName}":`, err);
+                        }
+                    }
+                };
+            }
+
+            if (hooks.onTouched) {
+                fv.touched.set = (newValue: boolean) => {
+                    const wasTouched = fv.touched();
+                    originalTouchedSet(newValue);
+
+                    if (!wasTouched && newValue) {
+                        try {
+                            hooks.onTouched!({
+                                fieldName,
+                                value: fv.value(),
+                                formValues: values(),
+                                fieldState: fv
+                            });
+                        } catch (err) {
+                            console.warn(`[Zignal] onTouched hook failed for "${fieldName}":`, err);
+                        }
+                    }
+                };
+            }
+        }
+
+        // =========================================================================
         // TR: hideExpression ve disableExpression
         // EN: hideExpression and disableExpression
         // =========================================================================
+
         for (const field of this.fields) {
             const fv = formFields[field.name as keyof T] as FieldValue<unknown>;
 
@@ -702,10 +788,11 @@ export class FormSchema<T extends FormDataType> {
             }
         }
 
-        /**
-         * TR: Tüm hataları toplayan computed signal.
-         * EN: Computed signal collecting all errors.
-         */
+        // =========================================================================
+        // TR: Diğer Computed Signals
+        // EN: Other Computed Signals
+        // =========================================================================
+
         const errors = computed(() => {
             const result: Partial<Record<keyof T, string | null>> = {};
             for (const [name, fv] of Object.entries(formFields)) {
@@ -714,10 +801,6 @@ export class FormSchema<T extends FormDataType> {
             return result;
         });
 
-        /**
-         * TR: Cross-field validation hataları.
-         * EN: Cross-field validation errors.
-         */
         const crossErrors = computed(() => {
             const result: Record<string, string | null> = {};
             const currentValues = values();
@@ -729,28 +812,14 @@ export class FormSchema<T extends FormDataType> {
             return result;
         });
 
-        /**
-         * TR: Genel geçerlilik durumu (cross-field dahil).
-         * EN: Overall validity status (including cross-field).
-         */
         const valid = computed(() => {
-            // TR: Alan bazlı validasyon
-            // EN: Field-level validation
             const fieldsValid = Object.values(formFields).every(
                 (fv) => (fv as FieldValue<unknown>).valid()
             );
-
-            // TR: Cross-field validasyon
-            // EN: Cross-field validation
             const crossValid = Object.values(crossErrors()).every(err => err === null);
-
             return fieldsValid && crossValid;
         });
 
-        /**
-         * TR: Dirty durumu - herhangi bir alan değişti mi?
-         * EN: Dirty status - has any field changed?
-         */
         const dirty = computed(() => {
             for (const [name, fv] of Object.entries(formFields)) {
                 const current = (fv as FieldValue<unknown>).value();
@@ -762,51 +831,65 @@ export class FormSchema<T extends FormDataType> {
             return false;
         });
 
-        /**
-         * TR: Pristine durumu - hiçbir alana dokunulmadı mı?
-         * EN: Pristine status - no field has been touched?
-         */
         const pristine = computed(() => {
             return Object.values(formFields).every(
                 (fv) => !(fv as FieldValue<unknown>).touched()
             );
         });
 
+        const dirtyFields = computed(() => {
+            const result: (keyof T)[] = [];
+            for (const [name, fv] of Object.entries(formFields)) {
+                const current = (fv as FieldValue<unknown>).value();
+                const initial = initialFieldValues.get(name);
+                if (!deepEqual(current, initial)) {
+                    result.push(name as keyof T);
+                }
+            }
+            return result;
+        });
+
         // =========================================================================
-        // TR: Action Methods - Aksiyon Metodları
+        // TR: Action Methods
         // EN: Action Methods
         // =========================================================================
 
-        /**
-         * TR: T�m alanları touched yap.
-         * EN: Mark all fields as touched.
-         */
         const touchAll = (): void => {
             for (const fv of Object.values(formFields)) {
                 (fv as FieldValue<unknown>).touched.set(true);
             }
         };
 
-        /**
-         * TR: Formu sıfırla.
-         * EN: Reset the form.
-         */
         const reset = (newInitial?: Partial<T>): void => {
             const resetValues = newInitial ?? initialValues();
             initialValues.set({...resetValues} as T);
 
             for (const [name, fv] of Object.entries(formFields)) {
                 const val = resetValues[name as keyof T] ?? null;
-                (fv as FieldValue<unknown>).value.set(val);
-                (fv as FieldValue<unknown>).touched.set(false);
+                const typedFv = fv as FieldValue<unknown>;
+
+                previousValues.set(name, val);
+                typedFv.value.set(val);
+                typedFv.touched.set(false);
                 initialFieldValues.set(name, val);
+
+                const field = this.fieldMap.get(name);
+                const hooks = field?.config.hooks;
+                if (hooks?.onReset) {
+                    try {
+                        hooks.onReset({
+                            fieldName: name,
+                            value: val,
+                            formValues: values(),
+                            fieldState: typedFv
+                        });
+                    } catch (err) {
+                        console.warn(`[Zignal] onReset hook failed for "${name}":`, err);
+                    }
+                }
             }
         };
 
-        /**
-         * TR: Tek alan deeri g�ncelle.
-         * EN: Update single field value.
-         */
         const setValue = <K extends keyof T>(name: K, value: T[K]): void => {
             const fv = formFields[name];
             if (fv) {
@@ -814,28 +897,16 @@ export class FormSchema<T extends FormDataType> {
             }
         };
 
-        /**
-         * TR: Birden fazla alan deeri g�ncelle.
-         * EN: Update multiple field values.
-         */
         const patchValues = (vals: Partial<T>): void => {
             for (const [name, value] of Object.entries(vals)) {
                 setValue(name as keyof T, value as T[keyof T]);
             }
         };
 
-        /**
-         * TR: Validasyondan ge�mi_ deerleri al.
-         * EN: Get validated values.
-         */
         const getValues = (): T => {
             return this.zodSchema.parse(values()) as T;
         };
 
-        /**
-         * TR: Sadece dei_en alanların deerlerini al.
-         * EN: Get only changed field values.
-         */
         const getDirtyValues = (): Partial<T> => {
             const result: Partial<T> = {};
             for (const [name, fv] of Object.entries(formFields)) {
@@ -848,20 +919,12 @@ export class FormSchema<T extends FormDataType> {
             return result;
         };
 
-        /**
-         * TR: T�m alanları validate et.
-         * EN: Validate all fields.
-         */
         const validateAll = async (): Promise<boolean> => {
             touchAll();
             const result = await this.zodSchema.safeParseAsync(values());
             return result.success;
         };
 
-        /**
-         * TR: Belirli alanı dirty olarak i_aretle.
-         * EN: Mark specific field as dirty.
-         */
         const markDirty = (name: keyof T): void => {
             const fv = formFields[name];
             if (fv) {
@@ -869,23 +932,14 @@ export class FormSchema<T extends FormDataType> {
             }
         };
 
-        /**
-         * TR: T�m alanları pristine yap.
-         * EN: Mark all fields as pristine.
-         */
         const markPristine = (): void => {
             for (const fv of Object.values(formFields)) {
                 (fv as FieldValue<unknown>).touched.set(false);
             }
         };
 
-        /**
-         * TR: Sadece belirli alanları validate et.
-         * EN: Validate only specific fields.
-         */
         const validateFields = (fieldNames: (keyof T)[]): boolean => {
             let allValid = true;
-
             for (const name of fieldNames) {
                 const fv = formFields[name];
                 if (fv) {
@@ -895,58 +949,27 @@ export class FormSchema<T extends FormDataType> {
                     }
                 }
             }
-
             return allValid;
         };
 
-        /**
-         * TR: Belirli bir alanı sıfırla.
-         * EN: Reset a specific field.
-         */
         const resetField = (name: keyof T): void => {
             const fv = formFields[name];
             if (fv) {
                 const initialVal = initialFieldValues.get(name as string) ?? null;
+                previousValues.set(name as string, initialVal);
                 fv.value.set(initialVal as T[keyof T]);
                 fv.touched.set(false);
             }
         };
 
-        /**
-         * TR: Değişen alanların listesi.
-         * EN: List of changed fields.
-         */
-        const dirtyFields = computed(() => {
-            const result: (keyof T)[] = [];
-
-            for (const [name, fv] of Object.entries(formFields)) {
-                const current = (fv as FieldValue<unknown>).value();
-                const initial = initialFieldValues.get(name);
-                if (!deepEqual(current, initial)) {
-                    result.push(name as keyof T);
-                }
-            }
-
-            return result;
-        });
-
-        /**
-         * TR: Belirli bir alan dirty mi?
-         * EN: Is a specific field dirty?
-         */
         const isFieldDirty = (name: keyof T): boolean => {
             const fv = formFields[name];
             if (!fv) return false;
-
             const current = fv.value();
             const initial = initialFieldValues.get(name as string);
             return !deepEqual(current, initial);
         };
 
-        /**
-         * TR: Form değerlerini JSON olarak export et.
-         * EN: Export form values as JSON.
-         */
         const toJSON = (options: FormExportOptions<T> = {}): Record<string, unknown> => {
             const {
                 excludeFields = [],
@@ -955,28 +978,15 @@ export class FormSchema<T extends FormDataType> {
             } = options;
 
             const transform: FormExportOptions<T>['transform'] = options.transform ?? {};
-
             const result: Record<string, unknown> = {};
             const sourceValues = onlyDirty ? getDirtyValues() : values();
 
             for (const [name, value] of Object.entries(sourceValues)) {
-                // Exclude kontrolü
-                if (excludeFields.includes(name as keyof T)) {
-                    continue;
-                }
+                if (excludeFields.includes(name as keyof T)) continue;
+                if (!includeNull && value === null) continue;
 
-                // Null kontrolü
-                if (!includeNull && value === null) {
-                    continue;
-                }
-
-                // Transform kontrolü
                 const transformFn = transform[name as keyof T];
-                if (transformFn) {
-                    result[name] = transformFn(value as T[keyof T]);
-                } else {
-                    result[name] = value;
-                }
+                result[name] = transformFn ? transformFn(value as T[keyof T]) : value;
             }
 
             return result;
@@ -1007,6 +1017,7 @@ export class FormSchema<T extends FormDataType> {
             toJSON,
         };
     }
+
 
     // ===========================================================================
     // TR: Schema Utility Methods - ^ema Yardımcı Metodları
