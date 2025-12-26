@@ -69,8 +69,8 @@ export class TimeField extends BaseField<TimeValue> {
         if (this.config.min) {
             const minMinutes = this.toMinutes(this.config.min);
             refined = refined.refine(
-                (val) => this.toMinutes(val) >= minMinutes,
-                {message: `Saat ${this.formatTime(this.config.min)} veya sonrası olmalıdır`}
+                (val:TimeValue) => this.toMinutes(val) >= minMinutes,
+                { message: t('time.minTime', { min: this.formatTime(this.config.min) }) }
             ) as unknown as typeof refined;
         }
 
@@ -78,8 +78,8 @@ export class TimeField extends BaseField<TimeValue> {
         if (this.config.max) {
             const maxMinutes = this.toMinutes(this.config.max);
             refined = refined.refine(
-                (val) => this.toMinutes(val) <= maxMinutes,
-                {message: `Saat ${this.formatTime(this.config.max)} veya öncesi olmalıdır`}
+                (val: TimeValue) => this.toMinutes(val) <= maxMinutes,
+                { message: t('time.maxTime', { max: this.formatTime(this.config.max) }) }
             ) as unknown as typeof refined;
         }
 

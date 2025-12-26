@@ -4,7 +4,7 @@ import {
     forwardRef,
     signal,
     computed,
-    input, Type
+    input
 } from '@angular/core';
 import {
     ControlValueAccessor,
@@ -28,6 +28,17 @@ import { PhoneField, PhoneFieldConfig } from '../../fields/phone.field';
 import { ColorField, ColorFieldConfig } from '../../fields/color.field';
 import { DateField, DateFieldConfig } from '../../fields/date.field';
 import { FileField, FileFieldConfig, FileInfo } from '../../fields/file.field';
+import {
+    JsonField,
+    MaskedField,
+    MoneyField,
+    PercentField,
+    RatingField,
+    SlugField,
+    TagsField,
+    TimeField
+} from "../../fields";
+import {ZgRatingComponent, ZgTagsComponent} from "./components";
 
 export interface FieldComponent {
     field: any;
@@ -36,18 +47,18 @@ export interface FieldComponent {
     onBlur: () => void;
 }
 
-export const FIELD_COMPONENTS: Record<string, () => Promise<Type<FieldComponent>>> = {
-    'string': () => import('./string-field.component').then(m => m.StringFieldComponent),
-    'number': () => import('./number-field.component').then(m => m.NumberFieldComponent),
-    'date': () => import('./date-field.component').then(m => m.DateFieldComponent),
-    'select': () => import('./select-field.component').then(m => m.SelectFieldComponent),
-    'file': () => import('./file-field.component').then(m => m.FileFieldComponent),
-    'boolean': () => import('./boolean-field.component').then(m => m.BooleanFieldComponent),
-    'password': () => import('./password-field.component').then(m => m.PasswordFieldComponent),
-    'textarea': () => import('./textarea-field.component').then(m => m.TextareaFieldComponent),
-    'array': () => import('./array-field.component').then(m => m.ArrayFieldComponent),
-    'group': () => import('./group-field.component').then(m => m.GroupFieldComponent),
-};
+// export const FIELD_COMPONENTS: Record<string, () => Promise<Type<FieldComponent>> = {
+//     // 'string': () => import('./components/zg-string.component').then(m => m.ZgStringComponent),
+//     // 'number': () => import('./number-field.component').then(m => m.NumberFieldComponent),
+//     // 'date': () => import('./date-field.component').then(m => m.DateFieldComponent),
+//     // 'select': () => import('./select-field.component').then(m => m.SelectFieldComponent),
+//     // 'file': () => import('./file-field.component').then(m => m.FileFieldComponent),
+//     // 'boolean': () => import('./boolean-field.component').then(m => m.BooleanFieldComponent),
+//     // 'password': () => import('./password-field.component').then(m => m.PasswordFieldComponent),
+//     // 'textarea': () => import('./textarea-field.component').then(m => m.TextareaFieldComponent),
+//     // 'array': () => import('./array-field.component').then(m => m.ArrayFieldComponent),
+//     // 'group': () => import('./group-field.component').then(m => m.GroupFieldComponent),
+// };
 
 /**
  * @fileoverview
@@ -57,7 +68,10 @@ export const FIELD_COMPONENTS: Record<string, () => Promise<Type<FieldComponent>
 @Component({
     selector: 'zg-auto-field',
     standalone: true,
-    imports: [],
+    imports: [
+        ZgTagsComponent,
+        ZgRatingComponent
+    ],
     template: `
         @if (showLabel() && field() && fieldType() !== 'boolean') {
             <label [for]="field().name" class="zg-label">
@@ -410,6 +424,107 @@ export const FIELD_COMPONENTS: Record<string, () => Promise<Type<FieldComponent>
                 </div>
             }
 
+            @case ('masked') {
+                <input
+                        [id]="field().name"
+                        type="text"
+                        [value]="value() ?? ''"
+                        [placeholder]="field().config.placeholder ?? ''"
+                        [disabled]="isDisabled()"
+                        [readonly]="field().config.readonly ?? false"
+                        class="zg-input"
+                        [class.zg-input--error]="hasError()"
+                        (input)="onInput($event)"
+                        (blur)="onBlur()"
+                />
+            }
+
+            @case ('money') {
+                <div class="zg-money-wrapper">
+                    <span class="zg-money-symbol">{{ getCurrencySymbol() }}</span>
+                    <input
+                            [id]="field().name"
+                            type="number"
+                            [value]="value()"
+                            [placeholder]="field().config.placeholder ?? '0.00'"
+                            [disabled]="isDisabled()"
+                            [step]="getMoneyStep()"
+                            class="zg-input"
+                            [class.zg-input--error]="hasError()"
+                            (input)="onNumberInput($event)"
+                            (blur)="onBlur()"
+                    />
+                </div>
+            }
+
+            @case ('percent') {
+                <div class="zg-percent-wrapper">
+                    <input
+                            [id]="field().name"
+                            type="number"
+                            [value]="value()"
+                            [min]="0"
+                            [max]="100"
+                            [step]="1"
+                            [disabled]="isDisabled()"
+                            class="zg-input"
+                            [class.zg-input--error]="hasError()"
+                            (input)="onNumberInput($event)"
+                            (blur)="onBlur()"
+                    />
+                    <span class="zg-percent-symbol">%</span>
+                </div>
+            }
+
+            @case ('slug') {
+                <input
+                        [id]="field().name"
+                        type="text"
+                        [value]="value() ?? ''"
+                        [placeholder]="'ornek-slug'"
+                        [disabled]="isDisabled()"
+                        class="zg-input zg-slug-input"
+                        [class.zg-input--error]="hasError()"
+                        (input)="onSlugInput($event)"
+                        (blur)="onBlur()"
+                />
+            }
+
+            @case ('time') {
+                <input
+                        [id]="field().name"
+                        type="time"
+                        [value]="value() ?? ''"
+                        [disabled]="isDisabled()"
+                        class="zg-input"
+                        [class.zg-input--error]="hasError()"
+                        (input)="onInput($event)"
+                        (blur)="onBlur()"
+                />
+            }
+
+            @case ('json') {
+                <textarea
+                        [id]="field().name"
+                        [value]="jsonValue()"
+                        [placeholder]="'{}'"
+                        [disabled]="isDisabled()"
+                        [rows]="6"
+                        class="zg-textarea zg-json-editor"
+                        [class.zg-textarea--error]="hasError()"
+                        (input)="onJsonInput($event)"
+                        (blur)="onBlur()"
+                ></textarea>
+            }
+
+            @case ('tags') {
+                <zg-tags [field]="tagsField()!" (valueChange)="onTagsChange($event)"></zg-tags>
+            }
+
+            @case ('rating') {
+                <zg-rating [field]="ratingField()!" (valueChange)="onRatingChange($event)"></zg-rating>
+            }
+
             @default {
                 <input
                     [id]="field().name"
@@ -641,6 +756,16 @@ export class ZgAutoFieldComponent<T = unknown>
         return 0;
     });
 
+    readonly tagsField = computed((): TagsField | null => {
+        const f = this.field();
+        return f instanceof TagsField ? f : null;
+    });
+
+    readonly ratingField = computed((): RatingField | null => {
+        const f = this.field();
+        return f instanceof RatingField ? f : null;
+    });
+
     readonly fieldType = computed(() => {
         const f = this.field();
         if (f instanceof PasswordField) return 'password';
@@ -656,6 +781,15 @@ export class ZgAutoFieldComponent<T = unknown>
         if (f instanceof BooleanField) return 'boolean';
         if (f instanceof SelectField) return 'select';
         if (f instanceof TextareaField) return 'textarea';
+        if (f instanceof MaskedField) return 'masked';
+        if (f instanceof MoneyField) return 'money';
+        if (f instanceof PercentField) return 'percent';
+        if (f instanceof SlugField) return 'slug';
+        if (f instanceof TimeField) return 'time';
+        if (f instanceof JsonField) return 'json';
+        if (f instanceof TagsField) return 'tags';
+        if (f instanceof RatingField) return 'rating';
+
         return 'unknown';
     });
 
@@ -1069,6 +1203,58 @@ export class ZgAutoFieldComponent<T = unknown>
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
+
+    getCurrencySymbol(): string {
+        const symbols: Record<string, string> = { TRY: '₺', USD: '$', EUR: '€', GBP: '£' };
+        const config = this.field().config as any;
+        return symbols[config?.currency ?? 'TRY'] ?? '₺';
+    }
+
+    getMoneyStep(): string {
+        const config = this.field().config as any;
+        const decimals = config?.decimals ?? 2;
+        return (1 / Math.pow(10, decimals)).toString();
+    }
+
+    onSlugInput(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const slugified = input.value
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        this.value.set(slugified as T);
+        this.onChange(slugified as T);
+    }
+
+    jsonValue(): string {
+        try {
+            return this.value() ? JSON.stringify(this.value(), null, 2) : '';
+        } catch {
+            return '';
+        }
+    }
+
+    onJsonInput(event: Event): void {
+        const textarea = event.target as HTMLTextAreaElement;
+        try {
+            const parsed = JSON.parse(textarea.value);
+            this.value.set(parsed as T);
+            this.onChange(parsed as T);
+        } catch {}
+    }
+
+    onTagsChange(tags: string[]): void {
+        this.value.set(tags as T);
+        this.onChange(tags as T);
+    }
+
+    onRatingChange(rating: number): void {
+        this.value.set(rating as T);
+        this.onChange(rating as T);
+    }
+
 
     onBlur(): void {
         this.isTouched.set(true);

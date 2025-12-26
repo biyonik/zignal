@@ -29,6 +29,8 @@ export interface FileInfo {
     // TR: Base64 veya blob URL (preview için)
     // EN: Base64 or blob URL (for preview)
     preview?: string;
+    width?: number;
+    height?: number;
 }
 
 /**
@@ -188,6 +190,8 @@ export class FileField extends BaseField<FileInfo | FileInfo[] | null> {
             lastModified: z.number().optional(),
             url: z.string().optional(),
             preview: z.string().optional(),
+            width: z.number().optional(),
+            height: z.number().optional(),
         }) as z.ZodType<FileInfo>;
 
         // TR: Tek dosya için validasyon (tip olarak ZodType kullan)
@@ -247,6 +251,50 @@ export class FileField extends BaseField<FileInfo | FileInfo[] | null> {
             }
 
             return this.applyRequired(arraySchema) as z.ZodType<FileInfo | FileInfo[] | null>;
+        }
+
+        if (this.config.maxWidth || this.config.minWidth ||
+            this.config.maxHeight || this.config.minHeight) {
+
+            singleFileSchema = singleFileSchema.superRefine((files, ctx) => {
+                const fileArray = Array.isArray(files) ? files : (files ? [files] : []);
+
+                for (const file of fileArray) {
+                    if (!file || !file.file) continue;
+
+                    // Only validate images
+                    if (!file.file.type.startsWith('image/')) continue;
+
+                    // Note: Actual dimension check requires async image loading
+                    // This is a placeholder for sync validation
+                    if (file.width !== undefined && file.height !== undefined) {
+                        if (this.config.maxWidth && file.width > this.config.maxWidth) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: t('file.maxWidthExceeded', { max: this.config.maxWidth }),
+                            });
+                        }
+                        if (this.config.minWidth && file.width < this.config.minWidth) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: t('file.minWidthRequired', { min: this.config.minWidth }),
+                            });
+                        }
+                        if (this.config.maxHeight && file.height > this.config.maxHeight) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: t('file.maxHeightExceeded', { max: this.config.maxHeight }),
+                            });
+                        }
+                        if (this.config.minHeight && file.height < this.config.minHeight) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: t('file.minHeightRequired', { min: this.config.minHeight }),
+                            });
+                        }
+                    }
+                }
+            }) as typeof singleFileSchema;
         }
 
         return this.applyRequired(singleFileSchema) as z.ZodType<FileInfo | FileInfo[] | null>;

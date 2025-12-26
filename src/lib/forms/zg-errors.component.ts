@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { FieldValue } from '../core/interfaces';
+import {t} from "../core";
 
 /**
  * TR: Field hatalarını gösteren bileşen.
@@ -88,25 +89,27 @@ export class ZgErrorsComponent {
         }
 
         // Standart Angular hata mesajları
-        if (errors['required']) return 'Bu alan zorunludur';
-        if (errors['email']) return 'Geçerli bir e-posta adresi giriniz';
+        if (errors['required']) return t('required')
+        if (errors['email']) return t('string.email');
         if (errors['minlength']) {
             const { requiredLength } = errors['minlength'] as { requiredLength: number };
-            return `En az ${requiredLength} karakter olmalıdır`;
+            return t('string.min', { min: requiredLength });
         }
         if (errors['maxlength']) {
             const { requiredLength } = errors['maxlength'] as { requiredLength: number };
-            return `En fazla ${requiredLength} karakter olmalıdır`;
+            return t('string.max', { max: requiredLength });
         }
         if (errors['min']) {
-            const { min } = errors['min'] as { min: number };
-            return `En az ${min} olmalıdır`;
+            const minError = errors['min'] as { min: number; actual: number } | { min: { min: number; actual: number } };
+            const minValue = typeof minError.min === 'object' ? minError.min.min : minError.min;
+            return t('number.min', { min: minValue });
         }
         if (errors['max']) {
-            const { max } = errors['max'] as { max: number };
-            return `En fazla ${max} olmalıdır`;
+            const maxError = errors['max'] as { max: number; actual: number } | { max: { max: number; actual: number } };
+            const maxValue = typeof maxError.max === 'object' ? maxError.max.max : maxError.max;
+            return t('number.max', { max: maxValue });
         }
 
-        return 'Geçersiz değer';
+        return t('invalid');
     }
 }

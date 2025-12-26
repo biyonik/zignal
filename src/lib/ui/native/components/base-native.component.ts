@@ -1,4 +1,4 @@
-import {Directive, Input, Output, EventEmitter, signal, computed, effect, input, output} from '@angular/core';
+import {Directive, signal, input, output} from '@angular/core';
 import { ControlValueAccessor, Validator, AbstractControl, ValidationErrors } from '@angular/forms';
 import { IField, FieldValue } from '../../../core/interfaces';
 
@@ -26,7 +26,11 @@ export abstract class BaseNativeComponent<TField extends IField<TValue>, TValue>
      * TR: Disabled durumu.
      * EN: Disabled state.
      */
-    disabled = input<boolean>(false);
+    private _disabled = signal<boolean>(false);
+    get disabledStatus(): boolean {
+        return this._disabled();
+    }
+    disabledInput = input<boolean>(false, { alias: 'disabled' });
 
     /**
      * TR: Readonly durumu.
@@ -53,7 +57,7 @@ export abstract class BaseNativeComponent<TField extends IField<TValue>, TValue>
     blurred = output<void>();
 
     protected internalState?: FieldValue<TValue>;
-    protected onChange: (value: TValue) => void = () => {};
+    protected onChange: (value: TValue | Event) => void = () => {};
     protected onTouched: () => void = () => {};
 
     /**
@@ -61,7 +65,7 @@ export abstract class BaseNativeComponent<TField extends IField<TValue>, TValue>
      * EN: Active state.
      */
     get activeState(): FieldValue<TValue> {
-        return this.state ?? this.internalState!;
+        return this.state() ?? this.internalState!;
     }
 
     /**
@@ -105,9 +109,11 @@ export abstract class BaseNativeComponent<TField extends IField<TValue>, TValue>
     }
 
     ngOnInit(): void {
-        if (!this.state) {
+        if (!this.state()) {
             this.internalState = this.field().createValue();
         }
+        // Sync disabled input to signal
+        this._disabled.set(this.disabledInput());
     }
 
     // ControlValueAccessor
@@ -115,7 +121,7 @@ export abstract class BaseNativeComponent<TField extends IField<TValue>, TValue>
         this.activeState.value.set(value);
     }
 
-    registerOnChange(fn: (value: TValue) => void): void {
+    registerOnChange(fn: (value: TValue | Event) => void): void {
         this.onChange = fn;
     }
 
@@ -124,12 +130,12 @@ export abstract class BaseNativeComponent<TField extends IField<TValue>, TValue>
     }
 
     setDisabledState(isDisabled: boolean): void {
-        this.disabled = isDisabled;
+        this._disabled.set(isDisabled);
     }
 
     // Validator
     validate(control: AbstractControl): ValidationErrors | null {
-        const result = this.field.schema().safeParse(control.value);
+        const result = this.field().schema().safeParse(control.value);
         if (result.success) return null;
 
         const errors: ValidationErrors = {};

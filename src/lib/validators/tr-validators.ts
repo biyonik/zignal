@@ -145,33 +145,31 @@ export const tcknSchema = z
  * ```
  */
 export function isValidVKN(vkn: string): boolean {
-  // TR: Sadece rakamlardan oluşmalı ve 10 hane olmalı
-  // EN: Must contain only digits and be 10 digits
-  if (!/^\d{10}$/.test(vkn)) {
-    return false;
-  }
-
-  const digits = vkn.split('').map(Number);
-  let sum = 0;
-
-  // TR: İlk 9 hane için hesaplama
-  // EN: Calculation for first 9 digits
-  for (let i = 0; i < 9; i++) {
-    let tmp = (digits[i] + (10 - (i + 1))) % 10;
-    if (tmp === 9) {
-      tmp = 9;
-    } else {
-      tmp = (tmp * Math.pow(2, 10 - (i + 1))) % 9;
+    if (!/^\d{10}$/.test(vkn)) {
+        return false;
     }
-    sum += tmp;
-  }
 
-  // TR: Kontrol rakamı hesaplama
-  // EN: Check digit calculation
-  const checkDigit = (10 - (sum % 10)) % 10;
+    const digits = vkn.split('').map(Number);
 
-  return checkDigit === digits[9];
+    // VKN algoritması
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+        let tmp = (digits[i] + (9 - i)) % 10;
+
+        if (tmp === 9) {
+            sum += tmp;
+        } else {
+            const power = Math.pow(2, 9 - i) % 9;
+            tmp = (tmp * power) % 9;
+            sum += tmp;
+        }
+    }
+
+    const checkDigit = (10 - (sum % 10)) % 10;
+
+    return checkDigit === digits[9];
 }
+
 
 /**
  * TR: VKN için Zod şeması.

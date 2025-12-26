@@ -155,13 +155,21 @@ export const CrossValidators = {
 
                 if (!start || !end) return null; // Boş değerler valid
 
-                // @ts-ignore
-                const startDate: Date = start instanceof Date ? start : new Date(start as string);
-                // @ts-ignore
-                const endDate: Date = end instanceof Date ? end : new Date(end as string);
+                // Type-safe date parsing
+                const parseDate = (val: unknown): Date | null => {
+                    if (val instanceof Date) return val;
+                    if (typeof val === 'string' || typeof val === 'number') {
+                        const parsed = new Date(val);
+                        return isNaN(parsed.getTime()) ? null : parsed;
+                    }
+                    return null;
+                };
 
-                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                    return null; // Geçersiz tarihler ayrı validasyonla kontrol edilir
+                const startDate = parseDate(start);
+                const endDate = parseDate(end);
+
+                if (!startDate || !endDate) {
+                    return null;
                 }
 
                 if (startDate >= endDate) {

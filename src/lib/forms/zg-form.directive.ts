@@ -4,7 +4,6 @@ import {
     Output,
     EventEmitter,
     OnInit,
-    OnDestroy,
     effect,
     inject,
     DestroyRef,
@@ -87,7 +86,7 @@ export type SyncMode = 'zignal' | 'angular' | 'bidirectional';
     standalone: true,
     exportAs: 'zgForm',
 })
-export class ZgFormDirective<T extends FormDataType> implements OnInit, OnDestroy {
+export class ZgFormDirective<T extends FormDataType> implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
 
     /**
@@ -133,15 +132,10 @@ export class ZgFormDirective<T extends FormDataType> implements OnInit, OnDestro
      */
     @Output() zgSubmit = new EventEmitter<T>();
 
-    private syncEffectCleanup?: () => void;
 
     ngOnInit(): void {
         this.initializeStates();
         this.setupSync();
-    }
-
-    ngOnDestroy(): void {
-        this.syncEffectCleanup?.();
     }
 
     private initializeStates(): void {

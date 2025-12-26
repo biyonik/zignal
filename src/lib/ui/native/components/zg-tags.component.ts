@@ -1,4 +1,4 @@
-import { Component, forwardRef, ElementRef, ViewChild } from '@angular/core';
+import {Component, forwardRef, ElementRef, ViewChild, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import { BaseNativeComponent } from './base-native.component';
@@ -39,7 +39,7 @@ import { TagsField } from '../../../fields/tags.field';
                     <button
                         type="button"
                         class="zg-tag-remove"
-                        [disabled]="disabled"
+                        [disabled]="disabledStatus"
                         (click)="removeTag(i, $event)"
                         aria-label="Kaldır"
                     >
@@ -51,9 +51,9 @@ import { TagsField } from '../../../fields/tags.field';
                 <input
                     #tagInput
                     type="text"
-                    [id]="field.name"
+                    [id]="field().name"
                     [placeholder]="inputPlaceholder"
-                    [disabled]="disabled"
+                    [disabled]="disabledStatus"
                     class="zg-tags-input"
                     (keydown)="onKeyDown($event)"
                     (input)="onInput($event)"
@@ -171,12 +171,20 @@ import { TagsField } from '../../../fields/tags.field';
         .zg-error { color: #ef4444; font-size: 12px; }
     `],
 })
-export class ZgTagsComponent extends BaseNativeComponent<TagsField, string[]> {
+export class ZgTagsComponent extends BaseNativeComponent<TagsField, string[]> implements OnDestroy{
     @ViewChild('tagInput') tagInput!: ElementRef<HTMLInputElement>;
 
     isFocused = false;
     inputValue = '';
     showSuggestions = false;
+    private blurTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    ngOnDestroy(): void {
+        if (this.blurTimeout) {
+            clearTimeout(this.blurTimeout);
+            this.blurTimeout = null;
+        }
+    }
 
     get inputPlaceholder(): string {
         const current = this.value?.length ?? 0;
@@ -226,12 +234,18 @@ export class ZgTagsComponent extends BaseNativeComponent<TagsField, string[]> {
         this.isFocused = false;
         this.handleBlur();
 
+        // Clear previous timeout
+        if (this.blurTimeout) {
+            clearTimeout(this.blurTimeout);
+        }
+
         // Delay to allow suggestion click
-        setTimeout(() => {
+        this.blurTimeout = setTimeout(() => {
             this.showSuggestions = false;
             if (this.inputValue.trim()) {
                 this.addCurrentTag();
             }
+            this.blurTimeout = null;
         }, 200);
     }
 

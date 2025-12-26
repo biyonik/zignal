@@ -80,7 +80,6 @@ export class MoneyField extends BaseField<MoneyValue> {
 
     schema(): z.ZodType<MoneyValue> {
         const currencies = this.config.currencies ?? ['TRY', 'USD', 'EUR'];
-        const decimals = this.config.decimals ?? 2;
 
         let amountSchema = z.number({
             invalid_type_error: t('invalid'),

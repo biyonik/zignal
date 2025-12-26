@@ -59,8 +59,12 @@ export class PercentField extends BaseField<number> {
             required_error: t('required'),
         });
 
-        base = base.min(min, `Minimum %${min} olmalıdır`);
-        base = base.max(max, `Maksimum %${max} olabilir`);
+        base = base.min(min, {
+            message: t('percent.min', { min: `%${min}` }),
+        });
+        base = base.max(max, {
+            message: t('percent.max', { max: `%${max}` }),
+        });
 
         return this.applyRequired(base);
     }

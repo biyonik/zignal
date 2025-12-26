@@ -153,6 +153,27 @@ export {
 
     GroupField,
     GroupFieldConfig,
+
+    MaskedField,
+    MaskedFieldConfig,
+
+    MoneyField,
+    MoneyFieldConfig,
+
+    PercentField,
+    PercentFieldConfig,
+
+    RatingField,
+    RatingFieldConfig,
+
+    SlugField,
+    SlugFieldConfig,
+
+    TagsField,
+    TagsFieldConfig,
+
+    TimeField,
+    TimeFieldConfig,
 } from './lib/fields';
 
 // =============================================================================

@@ -35,12 +35,12 @@ import { RatingField } from '../../../fields/rating.field';
                 [style.--inactive-color]="inactiveColor"
             >
                 <button
-                    *ngFor="let star of stars; let i = index"
+                    *ngFor="let _star of stars; let i = index"
                     type="button"
                     class="zg-star"
                     [class.zg-active]="(value ?? 0) > i"
                     [class.zg-half]="allowHalf && (value ?? 0) - i === 0.5"
-                    [disabled]="disabled || readonly || field().config.readOnly"
+                    [disabled]="disabledStatus || readonly || field().config.readOnly"
                     (click)="onStarClick(i + 1)"
                     (mouseenter)="onStarHover(i + 1)"
                     (mouseleave)="onStarLeave()"
@@ -136,13 +136,13 @@ export class ZgRatingComponent extends BaseNativeComponent<RatingField, number> 
     }
 
     onStarClick(rating: number): void {
-        if (this.disabled() || this.readonly() || this.field().config.readOnly) return;
+        if (this.disabledStatus || this.readonly() || this.field().config.readOnly) return;
         this.updateValue(rating);
         this.handleBlur();
     }
 
     onStarHover(rating: number): void {
-        if (this.disabled() || this.readonly() || this.field().config.readOnly) return;
+        if (this.disabledStatus || this.readonly() || this.field().config.readOnly) return;
         this.hoverValue = rating;
     }
 

@@ -2,42 +2,39 @@ import { Component, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import { BaseNativeComponent } from './base-native.component';
-import { NumberField } from '../../../fields/number.field';
+import { MaskedField } from '../../../fields/masked.field';
 
 @Component({
-    selector: 'zg-number',
+    selector: 'zg-masked',
     standalone: true,
     imports: [CommonModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => ZgNumberComponent),
+            useExisting: forwardRef(() => ZgMaskedComponent),
             multi: true,
         },
         {
             provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => ZgNumberComponent),
+            useExisting: forwardRef(() => ZgMaskedComponent),
             multi: true,
         },
     ],
     template: `
-        <div class="zg-field zg-number-field" [class]="cssClass">
+        <div class="zg-field zg-masked-field" [class]="cssClass()">
             <label *ngIf="field().label" [for]="field().name" class="zg-label">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <input
-                type="number"
+                type="text"
                 [id]="field().name"
                 [name]="field().name"
-                [value]="value"
-                [placeholder]="field().config.placeholder ?? ''"
+                [value]="displayValue"
+                [placeholder]="maskPlaceholder"
                 [disabled]="disabledStatus"
-                [readonly]="readonly"
-                [min]="field().config.min"
-                [max]="field().config.max"
-                [step]="field().config.step ?? (field().config.integer ? 1 : 'any')"
+                [readonly]="readonly()"
                 [attr.aria-label]="field().label"
                 [attr.aria-invalid]="showError"
                 [class.zg-invalid]="showError"
@@ -69,6 +66,7 @@ import { NumberField } from '../../../fields/number.field';
             border: 1px solid #d1d5db;
             border-radius: 6px;
             font-size: 14px;
+            font-family: monospace;
         }
         .zg-input:focus {
             outline: none;
@@ -81,10 +79,52 @@ import { NumberField } from '../../../fields/number.field';
         .zg-error { color: #ef4444; font-size: 12px; }
     `],
 })
-export class ZgNumberComponent extends BaseNativeComponent<NumberField, number> {
+export class ZgMaskedComponent extends BaseNativeComponent<MaskedField, string> {
+    get mask(): string {
+        return this.field().config.mask ?? '';
+    }
+
+    get maskPlaceholder(): string {
+        return this.field().config.placeholder ?? this.mask.replace(/9/g, '_').replace(/A/g, '_');
+    }
+
+    get displayValue(): string {
+        return this.value ?? '';
+    }
+
     onInput(event: Event): void {
         const input = event.target as HTMLInputElement;
-        const value = input.valueAsNumber;
-        this.updateValue(isNaN(value) ? null as any : value);
+        const masked = this.applyMask(input.value);
+        this.updateValue(masked);
+    }
+
+    private applyMask(value: string): string {
+        if (!this.mask) return value;
+
+        const mask = this.mask;
+        const chars = value.replace(/[^a-zA-Z0-9]/g, '');
+        let result = '';
+        let charIndex = 0;
+
+        for (let i = 0; i < mask.length && charIndex < chars.length; i++) {
+            const maskChar = mask[i];
+            if (maskChar === '9') {
+                if (/\d/.test(chars[charIndex])) {
+                    result += chars[charIndex++];
+                } else {
+                    break;
+                }
+            } else if (maskChar === 'A') {
+                if (/[a-zA-Z]/.test(chars[charIndex])) {
+                    result += chars[charIndex++];
+                } else {
+                    break;
+                }
+            } else {
+                result += maskChar;
+            }
+        }
+
+        return result;
     }
 }

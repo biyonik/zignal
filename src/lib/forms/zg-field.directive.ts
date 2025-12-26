@@ -97,10 +97,10 @@ export class ZgFieldDirective<T = unknown>
         if (result.success) return null;
 
         const errors: ValidationErrors = {};
-        for (const error of result.error.errors) {
-            errors[error.code || 'zodError'] = {
-                message: error.message,
-                path: error.path,
+        for (const issue of result.error.issues) {
+            errors[issue.code || 'zodError'] = {
+                message: issue.message,
+                path: issue.path,
             };
         }
         return errors;

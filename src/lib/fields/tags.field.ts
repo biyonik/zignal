@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseField } from './base.field';
-import { FieldConfig, t } from '../core';
+import {FieldConfig, t} from '../core';
 
 export interface TagsFieldConfig extends FieldConfig {
     /**
@@ -80,33 +80,41 @@ export class TagsField extends BaseField<string[]> {
         const maxTagLen = this.config.maxTagLength ?? 50;
 
         let tagSchema = z.string()
-            .min(minTagLen, `Her tag en az ${minTagLen} karakter olmalıdır`)
-            .max(maxTagLen, `Her tag en fazla ${maxTagLen} karakter olabilir`);
+            .min(minTagLen, {
+                message: t('tags.minLength', { minTagLength: this.config.maxTagLength! }),
+            })
+            .max(maxTagLen, {
+                message: t('tags.maxLength', { maxTagLength: this.config.maxTagLength! }),
+            });
 
         // Önerilerle sınırla
         if (this.config.restrictToSuggestions && this.config.suggestions?.length) {
             tagSchema = tagSchema.refine(
                 (tag) => this.config.suggestions!.includes(tag),
-                { message: 'Sadece önerilen tag\'ler seçilebilir' }
-            );
+                { message: t('tags.restrictToSuggestions') }
+            ) as any;
         }
 
         let arraySchema = z.array(tagSchema);
 
         if (this.config.minTags !== undefined) {
-            arraySchema = arraySchema.min(this.config.minTags, `En az ${this.config.minTags} tag eklemelisiniz`);
+            arraySchema = arraySchema.min(this.config.minTags, {
+                message: t('tags.minTags', { minTags: this.config.minTagLength! }),
+            });
         }
 
         if (this.config.maxTags !== undefined) {
-            arraySchema = arraySchema.max(this.config.maxTags, `En fazla ${this.config.maxTags} tag ekleyebilirsiniz`);
+            arraySchema = arraySchema.max(this.config.maxTags, {
+                message: t('tags.maxTags', { maxTags: this.config.maxTagLength! }),
+            });
         }
 
         // Duplicate kontrolü
         if (!this.config.allowDuplicates) {
             arraySchema = arraySchema.refine(
                 (tags) => new Set(tags).size === tags.length,
-                { message: 'Aynı tag birden fazla eklenemez' }
-            );
+                { message: t('tags.duplicate') }
+            ) as any;
         }
 
         return this.applyRequired(arraySchema) as z.ZodType<string[]>;
@@ -132,7 +140,10 @@ export class TagsField extends BaseField<string[]> {
         // String ise ayır
         if (typeof raw === 'string') {
             const separators = this.config.separators ?? [',', ';'];
-            const regex = new RegExp(`[${separators.join('')}]`);
+            const escapedSeparators = separators.map(s =>
+                s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            );
+            const regex = new RegExp(`[${escapedSeparators.join('')}]`);
             return raw
                 .split(regex)
                 .map((tag) => tag.trim())

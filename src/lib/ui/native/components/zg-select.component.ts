@@ -30,7 +30,7 @@ import { SelectField } from '../../../fields/select.field';
             <select
                 [id]="field().name"
                 [name]="field().name"
-                [disabled]="disabled"
+                [disabled]="disabledStatus"
                 [attr.aria-label]="field().label"
                 [attr.aria-invalid]="showError"
                 [class.zg-invalid]="showError"
@@ -109,9 +109,9 @@ export class ZgSelectComponent<T = string> extends BaseNativeComponent<SelectFie
         return this.field().getOptions().some((opt) => opt.group != null);
     }
 
-    get groups(): { name: string; options: typeof this.field.config.options }[] {
+    get groups(): { name: string; options: any }[] {
         const grouped = this.field().getGroupedOptions();
-        const result: { name: string; options: typeof this.field.config.options }[] = [];
+        const result: { name: string; options: any }[] = [];
 
         grouped.forEach((options, groupName) => {
             if (groupName != null) {

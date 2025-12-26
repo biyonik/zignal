@@ -293,7 +293,41 @@ export interface FormState<T extends FormDataType> {
 // EN: Utility Functions
 // =============================================================================
 
-const globalVisitedCache = new WeakMap<object, WeakMap<object, boolean>>();
+class BoundedCache<K extends object, V> {
+    private cache = new WeakMap<K, V>();
+    private keys: K[] = [];
+    private maxSize: number;
+
+    constructor(maxSize = 1000) {
+        this.maxSize = maxSize;
+    }
+
+    get(key: K): V | undefined {
+        return this.cache.get(key);
+    }
+
+    set(key: K, value: V): void {
+        if (!this.cache.has(key)) {
+            this.keys.push(key);
+            if (this.keys.length > this.maxSize) {
+                const oldKey = this.keys.shift();
+                if (oldKey) this.cache.delete(oldKey);
+            }
+        }
+        this.cache.set(key, value);
+    }
+
+    has(key: K): boolean {
+        return this.cache.has(key);
+    }
+
+    clear(): void {
+        this.keys = [];
+        this.cache = new WeakMap();
+    }
+}
+
+const globalVisitedCache = new BoundedCache<object, WeakMap<object, boolean>>(500);
 
 
 /**
@@ -309,78 +343,51 @@ const globalVisitedCache = new WeakMap<object, WeakMap<object, boolean>>();
  *
  * @internal
  */
-function deepEqual(
-    a: unknown,
-    b: unknown
-): boolean {
-    // Primitif değerler için hızlı kontrol
+function deepEqual(a: unknown, b: unknown, maxDepth = 50): boolean {
+    // Depth protection
+    if (maxDepth <= 0) return false;
+
+    // Primitive checks
     if (a === b) return true;
     if (a == null || b == null) return a === b;
     if (typeof a !== typeof b) return false;
+    if (typeof a !== 'object') return a === b;
 
-    // Date nesneleri için özel kontrol
-    if (a instanceof Date && b instanceof Date) {
-        return a.getTime() === b.getTime();
+    const objA = a as Record<string, unknown>;
+    const objB = b as Record<string, unknown>;
+
+    // Circular reference protection with bounded cache
+    let visitedForA = globalVisitedCache.get(objA);
+    if (!visitedForA) {
+        visitedForA = new WeakMap();
+        globalVisitedCache.set(objA, visitedForA);
     }
 
-    // Object tipler için
-    if (typeof a === 'object' && typeof b === 'object') {
-        const objA = a as object;
-        const objB = b as object;
+    if (visitedForA.has(objB)) {
+        return visitedForA.get(objB)!;
+    }
+    visitedForA.set(objB, true);
 
-        // Circular reference check with cached WeakMap
-        let visitedForA = globalVisitedCache.get(objA);
-        if (!visitedForA) {
-            visitedForA = new WeakMap();
-            globalVisitedCache.set(objA, visitedForA);
-        }
+    // Array check
+    if (Array.isArray(objA) !== Array.isArray(objB)) return false;
 
-        if (visitedForA.has(objB)) {
-            return visitedForA.get(objB)!;
-        }
-
-        // Mark as being compared (prevent infinite loop)
-        visitedForA.set(objB, true);
-
-        // Array kontrolü
-        if (Array.isArray(a) && Array.isArray(b)) {
-            if (a.length !== b.length) {
-                visitedForA.set(objB, false);
-                return false;
-            }
-            const result = a.every((item, index) => deepEqual(item, b[index]));
-            visitedForA.set(objB, result);
-            return result;
-        }
-
-        if (Array.isArray(a) !== Array.isArray(b)) {
-            visitedForA.set(objB, false);
-            return false;
-        }
-
-        const keysA = Object.keys(objA);
-        const keysB = Object.keys(objB);
-
-        if (keysA.length !== keysB.length) {
-            visitedForA.set(objB, false);
-            return false;
-        }
-
-        const result = keysA.every(
-            (key) =>
-                Object.prototype.hasOwnProperty.call(objB, key) &&
-                deepEqual(
-                    (objA as Record<string, unknown>)[key],
-                    (objB as Record<string, unknown>)[key]
-                )
-        );
-
-        visitedForA.set(objB, result);
-        return result;
+    if (Array.isArray(objA) && Array.isArray(objB)) {
+        if (objA.length !== objB.length) return false;
+        return objA.every((val, idx) => deepEqual(val, objB[idx], maxDepth - 1));
     }
 
-    return false;
+    // Object comparison
+    const keysA = Object.keys(objA);
+    const keysB = Object.keys(objB);
+
+    if (keysA.length !== keysB.length) return false;
+
+    return keysA.every(key =>
+        Object.prototype.hasOwnProperty.call(objB, key) &&
+        deepEqual(objA[key], objB[key], maxDepth - 1)
+    );
 }
+
 
 // =============================================================================
 // TR: Cross-Field Validation Types

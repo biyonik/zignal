@@ -59,24 +59,27 @@ export class RatingField extends BaseField<number> {
 
     schema(): z.ZodType<number> {
         const max = this.config.max ?? 5;
-        const step = this.config.allowHalf ? 0.5 : 1;
 
         let base = z.number({
             invalid_type_error: t('invalid'),
             required_error: t('required'),
         });
 
-        base = base.min(0, 'Rating 0 veya üzeri olmalıdır');
-        base = base.max(max, `Rating en fazla ${max} olabilir`);
+        base = base.min(0, {
+            message: t('rating.minValue', { min: 0 }),
+        });
+        base = base.max(max, {
+            message: t('rating.maxValue', { max }),
+        });
 
         // Yarım yıldız kontrolü
         if (!this.config.allowHalf) {
-            base = base.int('Tam sayı olmalıdır');
+            base = base.int(t('rating.mustBeInteger'));
         } else {
             base = base.refine(
-                (val) => val % 0.5 === 0,
-                { message: 'Rating 0.5\'in katı olmalıdır' }
-            );
+                (val) => Number.isInteger(val * 2),
+                { message: t('rating.mustBeHalfOrInteger') }
+            ) as any;
         }
 
         return this.applyRequired(base);

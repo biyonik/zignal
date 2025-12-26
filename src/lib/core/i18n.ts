@@ -1,4 +1,4 @@
-import { signal, computed, Signal, WritableSignal } from '@angular/core';
+import {signal, computed, Signal, WritableSignal} from '@angular/core';
 
 /**
  * @fileoverview
@@ -80,6 +80,10 @@ export type ValidationMessageKey =
     | 'file.acceptDescriptionWord'
     | 'file.acceptDescriptionExcel'
     | 'file.dictionaryMeaning'
+    | 'file.maxWidthExceeded'
+    | 'file.minWidthRequired'
+    | 'file.maxHeightExceeded'
+    | 'file.minHeightRequired'
     // Array
     | 'array.min'
     | 'array.max'
@@ -100,6 +104,31 @@ export type ValidationMessageKey =
     | 'email.blockedDomains'
     | 'email.blockedDomain'
     | 'email.blockDisposable'
+    // Rating
+    | 'rating.halfStep'
+    | 'rating.minValue'
+    | 'rating.maxValue'
+    | 'rating.mustBeInteger'
+    // Percent
+    | 'percent.min'
+    | 'percent.max'
+    // Tags
+    | 'tags.minTags'
+    | 'tags.maxTags'
+    | 'tags.minLength'
+    | 'tags.maxLength'
+    | 'tags.duplicate'
+    // Time
+    | 'time.invalid'
+    | 'time.minTime'
+    | 'time.maxTime'
+    // URL
+    | 'url.invalidProtocol'
+    | 'url.invalidDomain'
+    // Validation
+    | 'validation.min'
+    | 'validation.max'
+    | 'validation.dateRange'
     // Custom
     | string;
 
@@ -191,6 +220,10 @@ export const TR_MESSAGES: MessageDictionary = {
     'file.acceptDescriptionWord': 'Word Belgeleri',
     'file.acceptDescriptionExcel': 'Excel Belgeleri',
     'file.dictionaryMeaning': 'Dosya',
+    'file.maxWidthExceeded': 'Görsel genişliği en fazla {max}px olabilir',
+    'file.minWidthRequired': 'Görsel genişliği en az {min}px olmalı',
+    'file.maxHeightExceeded': 'Görsel yüksekliği en fazla {max}px olabilir',
+    'file.minHeightRequired': 'Görsel yüksekliği en az {min}px olmalı',
 
     // Array
     'array.min': 'En az {min} öğe eklemelisiniz',
@@ -215,6 +248,40 @@ export const TR_MESSAGES: MessageDictionary = {
     'email.blockedDomains': 'Aşağıdaki domainlerden e-posta kabul edilmiyor: {domains}',
     'email.blockedDomain': 'Bu domainden e-posta kabul edilmiyor: {domain}',
     'email.blockDisposable': 'Tek kullanımlık e-posta adresleri kabul edilmiyor',
+
+    // Rating
+    'rating.halfStep': 'Rating 0.5\'in katı olmalıdır',
+    'rating.minValue': 'Rating {min} veya üzeri olmalıdır',
+    'rating.maxValue': 'Rating en fazla {max} olabilir',
+    'rating.mustBeInteger': 'Rating tam sayı olmalıdır',
+
+    // Percent
+    'percent.min': 'Minimum %{min} olmalıdır',
+    'percent.max': 'Maksimum %{max} olabilir',
+
+    // Tags
+    'tags.minTags': 'En az {min} etiket eklenmeli',
+    'tags.maxTags': 'En fazla {max} etiket eklenebilir',
+    'tags.minLength': 'Etiket en az {min} karakter olmalı',
+    'tags.maxLength': 'Etiket en fazla {max} karakter olabilir',
+    'tags.duplicate': 'Bu etiket zaten eklenmiş',
+
+    // Time
+    'time.invalid': 'Geçersiz saat formatı',
+    'time.minTime': 'Saat en erken {min} olabilir',
+    'time.maxTime': 'Saat en geç {max} olabilir',
+
+    // URL
+    'url.invalidProtocol': 'Geçersiz protokol. Beklenen: {protocols}',
+    'url.invalidDomain': 'Geçersiz domain',
+
+    // Validation
+    'validation.min': 'En az {min} olmalıdır',
+    'validation.max': 'En fazla {max} olabilir',
+
+    // Multiselect
+    'multiselect.selected': '{count} seçili',
+    'validation.dateRange': 'Başlangıç tarihi bitiş tarihinden önce olmalıdır',
 };
 
 /**
@@ -306,6 +373,46 @@ export const EN_MESSAGES: MessageDictionary = {
     'email.blockedDomains': 'Email from the following domains are not allowed: {domains}',
     'email.blockedDomain': 'Email from the following this domain is not allowed: {domain}',
     'email.blockDisposable': 'Disposable email addresses are not allowed',
+
+    // Rating
+    'rating.halfStep': 'Rating must be a multiple of 0.5',
+    'rating.minValue': 'Rating must be {min} or higher',
+    'rating.maxValue': 'Rating can be at most {max}',
+    'rating.mustBeInteger': 'Rating must be an integer',
+
+    // Percent
+    'percent.min': 'Minimum must be {min}%',
+    'percent.max': 'Maximum can be {max}%',
+
+    // Tags
+    'tags.minTags': 'At least {min} tags required',
+    'tags.maxTags': 'At most {max} tags allowed',
+    'tags.minLength': 'Tag must be at least {min} characters',
+    'tags.maxLength': 'Tag can be at most {max} characters',
+    'tags.duplicate': 'This tag already exists',
+
+    // Time
+    'time.invalid': 'Invalid time format',
+    'time.minTime': 'Time must be at earliest {min}',
+    'time.maxTime': 'Time must be at latest {max}',
+
+    // URL
+    'url.invalidProtocol': 'Invalid protocol. Expected: {protocols}',
+    'url.invalidDomain': 'Invalid domain',
+
+    // File
+    'file.maxWidthExceeded': 'Image width cannot exceed {max}px',
+    'file.minWidthRequired': 'Image width must be at least {min}px',
+    'file.maxHeightExceeded': 'Image height cannot exceed {max}px',
+    'file.minHeightRequired': 'Image height must be at least {min}px',
+
+    // Validation
+    'validation.min': 'Must be at least {min}',
+    'validation.max': 'Can be at most {max}',
+
+    // Multiselect
+    'multiselect.selected': '{count} selected',
+    'validation.dateRange': 'Start date must be before end date',
 };
 
 /**
@@ -380,7 +487,7 @@ export class I18nService {
     readonly currentMessages: Signal<MessageDictionary>;
 
     private constructor(initialLocale: LocaleCode = 'tr') {
-        this.messages = { ...DEFAULT_MESSAGES };
+        this.messages = {...DEFAULT_MESSAGES};
         this._locale = signal(initialLocale);
         this.locale = this._locale.asReadonly();
 

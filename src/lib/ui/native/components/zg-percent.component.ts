@@ -2,49 +2,52 @@ import { Component, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import { BaseNativeComponent } from './base-native.component';
-import { NumberField } from '../../../fields/number.field';
+import { PercentField } from '../../../fields/percent.field';
 
 @Component({
-    selector: 'zg-number',
+    selector: 'zg-percent',
     standalone: true,
     imports: [CommonModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => ZgNumberComponent),
+            useExisting: forwardRef(() => ZgPercentComponent),
             multi: true,
         },
         {
             provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => ZgNumberComponent),
+            useExisting: forwardRef(() => ZgPercentComponent),
             multi: true,
         },
     ],
     template: `
-        <div class="zg-field zg-number-field" [class]="cssClass">
+        <div class="zg-field zg-percent-field" [class]="cssClass()">
             <label *ngIf="field().label" [for]="field().name" class="zg-label">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
-            <input
-                type="number"
-                [id]="field().name"
-                [name]="field().name"
-                [value]="value"
-                [placeholder]="field().config.placeholder ?? ''"
-                [disabled]="disabledStatus"
-                [readonly]="readonly"
-                [min]="field().config.min"
-                [max]="field().config.max"
-                [step]="field().config.step ?? (field().config.integer ? 1 : 'any')"
-                [attr.aria-label]="field().label"
-                [attr.aria-invalid]="showError"
-                [class.zg-invalid]="showError"
-                class="zg-input"
-                (input)="onInput($event)"
-                (blur)="handleBlur()"
-            />
+            <div class="zg-percent-wrapper">
+                <input
+                    type="number"
+                    [id]="field().name"
+                    [name]="field().name"
+                    [value]="value"
+                    [placeholder]="field().config.placeholder ?? '0'"
+                    [disabled]="disabledStatus"
+                    [readonly]="readonly()"
+                    [min]="field().config.min ?? 0"
+                    [max]="field().config.max ?? 100"
+                    [step]="field().config.step ?? 1"
+                    [attr.aria-label]="field().label"
+                    [attr.aria-invalid]="showError"
+                    [class.zg-invalid]="showError"
+                    class="zg-input"
+                    (input)="onInput($event)"
+                    (blur)="handleBlur()"
+                />
+                <span class="zg-percent-symbol">%</span>
+            </div>
 
             <small *ngIf="field().config.hint && !showError" class="zg-hint">
                 {{ field().config.hint }}
@@ -64,10 +67,15 @@ import { NumberField } from '../../../fields/number.field';
         }
         .zg-label { font-weight: 500; font-size: 14px; }
         .zg-required { color: #ef4444; }
+        .zg-percent-wrapper {
+            display: flex;
+            align-items: center;
+        }
         .zg-input {
+            flex: 1;
             padding: 8px 12px;
             border: 1px solid #d1d5db;
-            border-radius: 6px;
+            border-radius: 6px 0 0 6px;
             font-size: 14px;
         }
         .zg-input:focus {
@@ -77,11 +85,20 @@ import { NumberField } from '../../../fields/number.field';
         }
         .zg-input.zg-invalid { border-color: #ef4444; }
         .zg-input:disabled { background-color: #f3f4f6; cursor: not-allowed; }
+        .zg-percent-symbol {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-left: none;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
         .zg-hint { color: #6b7280; font-size: 12px; }
         .zg-error { color: #ef4444; font-size: 12px; }
     `],
 })
-export class ZgNumberComponent extends BaseNativeComponent<NumberField, number> {
+export class ZgPercentComponent extends BaseNativeComponent<PercentField, number> {
     onInput(event: Event): void {
         const input = event.target as HTMLInputElement;
         const value = input.valueAsNumber;

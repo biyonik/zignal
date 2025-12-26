@@ -221,25 +221,32 @@ export abstract class BaseField<T> implements IField<T> {
         const debouncedValue = signal<T>(initial as T);
         let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-        // Debounce effect - sadece debounce > 0 ise
-        if (debounceMs > 0) {
-            // Value değiştiğinde debouncedValue'yu güncelle
-            // Not: Bu effect'i dışarıda tutuyoruz, component destroy'da temizlenmeli
-            const updateDebouncedValue = () => {
-                if (debounceTimer) {
-                    clearTimeout(debounceTimer);
-                }
+        // Debounce logic - value değiştiğinde debouncedValue'yu güncelle
+        const syncDebouncedValue = (newValue: T) => {
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+            if (debounceMs > 0) {
                 debounceTimer = setTimeout(() => {
-                    debouncedValue.set(value());
+                    debouncedValue.set(newValue);
                 }, debounceMs);
-            };
+            } else {
+                debouncedValue.set(newValue);
+            }
+        };
 
-            // Initial sync
-            debouncedValue.set(value());
-        }
-
-        // Validation için kullanılacak değer
-        const valueForValidation = debounceMs > 0 ? debouncedValue : value;
+        // Wrapped value signal with debounce support
+        const wrappedValue: WritableSignal<T> = {
+            ...value,
+            set: (newValue: T) => {
+                value.set(newValue);
+                syncDebouncedValue(newValue);
+            },
+            update: (fn: (value: T) => T) => {
+                value.update(fn);
+                syncDebouncedValue(value());
+            },
+        } as WritableSignal<T>;
 
         const validationResult = computed(() => {
             const currentValue = debounceMs > 0 ? debouncedValue() : value();
@@ -274,13 +281,9 @@ export abstract class BaseField<T> implements IField<T> {
             return validationResult().error;
         });
 
-        // Debounce'lu value signal wrapper
-        const wrappedValue = debounceMs > 0
-            ? this.createDebouncedSignal(value, debouncedValue, debounceMs)
-            : value;
-
         return { value: wrappedValue, error, touched, valid };
     }
+
 
     /**
      * TR: Debounce'lu WritableSignal wrapper oluşturur.
@@ -469,17 +472,18 @@ export abstract class BaseField<T> implements IField<T> {
             };
         }
 
-        const firstError = result.error.errors[0];
+        const firstIssue = result.error.issues[0];
         return {
             success: false,
             data: null,
             error: {
-                message: firstError?.message ?? 'Ge﷿ersiz veri',
-                path: firstError?.path,
-                code: firstError?.code,
+                message: firstIssue?.message ?? 'Geçersiz veri',
+                path: firstIssue?.path,
+                code: firstIssue?.code,
             },
         };
     }
+
 
     /**
      * TR: Filtreleme aray﷿zlerinde kullan1lacak k1sa ﷿nizleme metni olu_turur.
