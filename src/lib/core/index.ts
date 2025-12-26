@@ -33,3 +33,6 @@ export * from './i18n';
 
 // Debugging
 export * from './debug';
+
+// Expression Parser
+export * from './expression-parser';

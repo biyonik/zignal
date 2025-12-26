@@ -1,6 +1,7 @@
 import {computed, signal, Signal} from '@angular/core';
 import {z} from 'zod';
 import {FieldValue, IField} from "./interfaces";
+import {parseExpression} from "./expression-parser";
 
 /**
  * @fileoverview
@@ -642,11 +643,11 @@ export class FormSchema<T extends FormDataType> {
      * ```
      */
     createForm(initial: Partial<T> = {}): FormState<T> {
-        // TR: Ba_langı� deerlerini sakla
+        // TR: Başlangıç değerlerini sakla
         // EN: Store initial values
         const initialValues = signal<T>({...initial} as T);
 
-        // TR: Her alan i�in FieldValue olu_tur
+        // TR: Her alan için FieldValue oluştur
         // EN: Create FieldValue for each field
         const fieldEntries = this.fields.map((field) => {
             const initValue = initial[field.name as keyof T] ?? null;
@@ -655,7 +656,7 @@ export class FormSchema<T extends FormDataType> {
 
         const formFields = Object.fromEntries(fieldEntries) as FormState<T>['fields'];
 
-        // TR: Ba_langı� deerlerini her alan i�in sakla (dirty hesaplaması i�in)
+        // TR: Başlangıç değerlerini her alan için sakla (dirty hesaplaması için)
         // EN: Store initial values for each field (for dirty calculation)
         const initialFieldValues = new Map<string, unknown>();
         for (const [name, fv] of Object.entries(formFields)) {
@@ -668,7 +669,7 @@ export class FormSchema<T extends FormDataType> {
         // =========================================================================
 
         /**
-         * TR: T�m form deerlerini d�nd�ren computed signal.
+         * TR: Tüm form değerlerini döndüren computed signal.
          * EN: Computed signal returning all form values.
          */
         const values = computed(() => {
@@ -678,6 +679,28 @@ export class FormSchema<T extends FormDataType> {
             }
             return result as T;
         });
+
+        // =========================================================================
+        // TR: hideExpression ve disableExpression
+        // EN: hideExpression and disableExpression
+        // =========================================================================
+        for (const field of this.fields) {
+            const fv = formFields[field.name as keyof T] as FieldValue<unknown>;
+
+            if (field.config.hideExpression) {
+                const parsedHide = parseExpression(field.config.hideExpression);
+                (fv as any).hidden = computed(() => parsedHide(values()));
+            } else {
+                (fv as any).hidden = computed(() => false);
+            }
+
+            if (field.config.disableExpression) {
+                const parsedDisable = parseExpression(field.config.disableExpression);
+                (fv as any).disabled = computed(() => parsedDisable(values()));
+            } else {
+                (fv as any).disabled = computed(() => false);
+            }
+        }
 
         /**
          * TR: Tüm hataları toplayan computed signal.
@@ -725,7 +748,7 @@ export class FormSchema<T extends FormDataType> {
         });
 
         /**
-         * TR: Dirty durumu - herhangi bir alan dei_ti mi?
+         * TR: Dirty durumu - herhangi bir alan değişti mi?
          * EN: Dirty status - has any field changed?
          */
         const dirty = computed(() => {
@@ -740,7 +763,7 @@ export class FormSchema<T extends FormDataType> {
         });
 
         /**
-         * TR: Pristine durumu - hi�bir alana dokunulmadı mı?
+         * TR: Pristine durumu - hiçbir alana dokunulmadı mı?
          * EN: Pristine status - no field has been touched?
          */
         const pristine = computed(() => {

@@ -1,4 +1,16 @@
 /**
+ * TR: Değer fonksiyonu tipi - form değerlerini alıp boolean döner
+ * EN: Value function type - takes form values and returns boolean
+ */
+export type ExpressionFn = (values: Record<string, unknown>) => boolean;
+
+/**
+ * TR: Expression tipi - fonksiyon veya field adı string
+ * EN: Expression type - function or field name string
+ */
+export type Expression = ExpressionFn | string;
+
+/**
  * @fileoverview
  * TR: Alan (Field) konfigürasyon seçeneklerini tanımlayan arayüz.
  * Bir form alanının görünürlüğü, zorunluluğu ve kullanıcıya sunulan ipuçları gibi
@@ -169,4 +181,29 @@ export interface FieldConfig {
      * Only applies to this field.
      */
     validationDebounce?: number;
+
+    /**
+     * TR: Alan gizleme koşulu. true dönerse alan gizlenir.
+     * EN: Field hide condition. Field is hidden if returns true.
+     *
+     * @example
+     * // Fonksiyon olarak
+     * hideExpression: (values) => !values['country']
+     *
+     * // String olarak (falsy ise gizle)
+     * hideExpression: '!country'
+     *
+     * // String olarak (eşitlik)
+     * hideExpression: 'type !== "individual"'
+     */
+    hideExpression?: Expression;
+
+    /**
+     * TR: Alan devre dışı bırakma koşulu. true dönerse alan disabled olur.
+     * EN: Field disable condition. Field is disabled if returns true.
+     *
+     * @example
+     * disableExpression: (values) => values['status'] === 'locked'
+     */
+    disableExpression?: Expression;
 }

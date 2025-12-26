@@ -145,4 +145,40 @@ export interface FieldValue<T> {
      * Can be used to prevent memory leaks or unsubscribe from subscriptions.
      */
     cleanup?: () => void;
+
+    /**
+     * TR: Alanın görünürlük durumunu belirten salt okunur sinyal.
+     * `true` ise alan UI'da gizlenir, `false` ise görünür olur.
+     * Dinamik form yapılarında alanların gösterilip gizlenmesi için kullanılır.
+     *
+     * EN: Read-only signal indicating the visibility status of the field.
+     * If `true`, the field is hidden in the UI; if `false`, it is visible.
+     * Used for showing/hiding fields in dynamic form structures.
+     *
+     * @remarks
+     * TR: Alan gizlendiğinde (hidden=true) validasyon ve değer gönderimi
+     * genellikle atlanır. Bu davranış form yapılandırmasına bağlıdır.
+     *
+     * EN: When the field is hidden (hidden=true), validation and value submission
+     * are typically skipped. This behavior depends on the form configuration.
+     */
+    hidden?: Signal<boolean>;
+
+    /**
+     * TR: Alanın devre dışı (disabled) durumunu belirten salt okunur sinyal.
+     * `true` ise alan kullanıcı etkileşimlerine kapalıdır, `false` ise etkindir.
+     * Formun belirli durumlarında alanların devre dışı bırakılması için kullanılır.
+     *
+     * EN: Read-only signal indicating the disabled status of the field.
+     * If `true`, the field is non-interactive for the user; if `false`, it is active.
+     * Used to disable fields in certain form states.
+     *
+     * @remarks
+     * TR: Devre dışı bırakılan alanlar genellikle validasyon ve değer gönderiminden
+     * muaf tutulur. Bu davranış form yapılandırmasına bağlıdır.
+     *
+     * EN: Disabled fields are typically exempt from validation and value submission.
+     * This behavior depends on the form configuration.
+     */
+    disabled?: Signal<boolean>;
 }
