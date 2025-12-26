@@ -65,6 +65,7 @@ export type ValidationMessageKey =
     // File
     | 'file.required'
     | 'file.maxSize'
+    | 'file.minSize'
     | 'file.type'
     | 'file.acceptedTypes'
     | 'file.acceptedType'
@@ -175,6 +176,7 @@ export const TR_MESSAGES: MessageDictionary = {
     // File
     'file.required': 'Lütfen bir dosya seçiniz',
     'file.maxSize': 'Dosya boyutu en fazla {maxSize} olabilir',
+    'file.minSize': 'Dosya boyutu en az {minSize} olmalıdır',
     'file.type': 'Geçersiz dosya türü. İzin verilen: {types}',
     'file.acceptedTypes': 'İzin verilen dosya türleri: {types}',
     'file.acceptedType': 'İzin verilen dosya türü: {type}',
@@ -265,6 +267,7 @@ export const EN_MESSAGES: MessageDictionary = {
     // File
     'file.required': 'Please select a file',
     'file.maxSize': 'File size must be at most {maxSize}',
+    'file.minSize': 'File size must be at least {minSize}',
     'file.type': 'Invalid file type. Allowed: {types}',
     'file.acceptedTypes': 'Accepted file types: {types}',
     'file.acceptedType': 'Accepted file type: {type}',
@@ -394,6 +397,13 @@ export class I18nService {
     static getInstance(initialLocale?: LocaleCode): I18nService {
         if (!I18nService.instance) {
             I18nService.instance = new I18nService(initialLocale);
+        } else if (initialLocale && I18nService.instance.getLocale() !== initialLocale) {
+            // Farklı locale isteniyorsa, locale'i değiştir (opsiyonel)
+            // Veya uyarı ver
+            console.warn(
+                `I18nService already initialized with locale "${I18nService.instance.getLocale()}". ` +
+                `Cannot change to "${initialLocale}". Use setLocale() instead.`
+            );
         }
         return I18nService.instance;
     }

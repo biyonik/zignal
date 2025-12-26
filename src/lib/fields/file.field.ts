@@ -230,7 +230,7 @@ export class FileField extends BaseField<FileInfo | FileInfo[] | null> {
             const minSize = this.config.minSize;
             singleFileSchema = singleFileSchema.refine(
                 (file) => file.size >= minSize,
-                {message: t('file.maxSize', {maxSize: this.formatSize(minSize)})}
+                {message: t('file.minSize', {minSize: this.formatSize(minSize)})}
             );
         }
 

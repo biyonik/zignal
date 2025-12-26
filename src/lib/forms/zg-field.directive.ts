@@ -6,8 +6,7 @@ import {
     Renderer2,
     inject,
     effect,
-    input,
-    DestroyRef,
+    input
 } from '@angular/core';
 import {
     ControlValueAccessor,
@@ -19,10 +18,6 @@ import {
 } from '@angular/forms';
 import { IField, FieldValue } from '../core/interfaces';
 
-/**
- * TR: Herhangi bir input elementine Zignal field bağlayan directive.
- * Signal-first yaklaşım ile Angular Forms entegrasyonu.
- */
 @Directive({
     selector: '[zgField]',
     standalone: true,
@@ -44,32 +39,20 @@ export class ZgFieldDirective<T = unknown>
 {
     private readonly el = inject(ElementRef);
     private readonly renderer = inject(Renderer2);
-    private readonly destroyRef = inject(DestroyRef);
-
-    /**
-     * TR: Bağlanacak Zignal field.
-     */
     readonly field = input.required<IField<T>>({ alias: 'zgField' });
-
-    /**
-     * TR: Field state'i. Opsiyonel - verilmezse otomatik oluşturulur.
-     */
     readonly fieldState = input<FieldValue<T>>();
 
     private onChange: (value: T) => void = () => {};
     private onTouched: () => void = () => {};
     private internalState?: FieldValue<T>;
     private effectRef?: ReturnType<typeof effect>;
+    private listenerCleanups: (() => void)[] = [];
 
-    /**
-     * TR: Aktif field state'ini döner.
-     */
     get state(): FieldValue<T> {
         return this.fieldState() ?? this.internalState!;
     }
 
     ngOnInit(): void {
-        // State yoksa oluştur
         if (!this.fieldState()) {
             this.internalState = this.field().createValue();
         }
@@ -79,11 +62,14 @@ export class ZgFieldDirective<T = unknown>
     }
 
     ngOnDestroy(): void {
-        // this.effectRef?.destroy();
-        this.destroyRef.onDestroy(() => this.effectRef?.destroy());
+        // Effect'i temizle
+        this.effectRef?.destroy();
+
+        // Listener'ları temizle
+        this.listenerCleanups.forEach(cleanup => cleanup());
+        this.listenerCleanups = [];
     }
 
-    // ControlValueAccessor
     writeValue(value: T): void {
         if (this.state) {
             this.state.value.set(value);
@@ -103,7 +89,6 @@ export class ZgFieldDirective<T = unknown>
         this.renderer.setProperty(this.el.nativeElement, 'disabled', isDisabled);
     }
 
-    // Validator
     validate(control: AbstractControl): ValidationErrors | null {
         const f = this.field();
         if (!f) return null;
@@ -144,19 +129,21 @@ export class ZgFieldDirective<T = unknown>
         const el = this.el.nativeElement;
 
         // Input event
-        this.renderer.listen(el, 'input', (event: Event) => {
+        const inputCleanup = this.renderer.listen(el, 'input', (event: Event) => {
             const value = this.parseInputValue(event.target as HTMLInputElement);
             this.state.value.set(value as T);
             this.onChange(value as T);
         });
+        this.listenerCleanups.push(inputCleanup);
 
         // Blur event
-        this.renderer.listen(el, 'blur', () => {
+        const blurCleanup = this.renderer.listen(el, 'blur', () => {
             this.state.touched.set(true);
             this.onTouched();
         });
+        this.listenerCleanups.push(blurCleanup);
 
-        // State → Element sync (effect)
+        // State → Element sync
         this.effectRef = effect(() => {
             const value = this.state.value();
             this.updateElementValue(value);

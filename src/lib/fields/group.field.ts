@@ -1,4 +1,4 @@
-import {signal, computed, Signal, WritableSignal} from '@angular/core';
+import {signal, computed, Signal, effect} from '@angular/core';
 import {z} from 'zod';
 import {BaseField} from './base.field';
 import {FieldConfig, FieldValue, IField} from '../core/interfaces';
@@ -289,8 +289,15 @@ export class GroupField extends BaseField<Record<string, unknown>> {
     override createValue(initial?: Record<string, unknown>): FieldValue<Record<string, unknown>> {
         const groupState = this.createGroupState(initial);
 
+        const valueSignal = signal<Record<string, unknown>>(groupState.values());
+
+        effect(() => {
+            const newValues = groupState.values();
+            valueSignal.set(newValues);
+        }, { allowSignalWrites: true });
+
         return {
-            value: groupState.values as unknown as WritableSignal<Record<string, unknown>>,
+            value: valueSignal,
             touched: signal(false),
             error: computed(() => {
                 const errs = Object.values(groupState.errors()).filter(Boolean);

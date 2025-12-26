@@ -137,4 +137,36 @@ export interface FieldConfig {
      * EN: Custom validation function. Runs after Zod schema validation.
      */
     customValidator?: (value: unknown) => string | null;
+
+    /**
+     * TR: Değeri otomatik olarak trim et (string için).
+     * EN: Automatically trim the value (for strings).
+     * @default false
+     */
+    trim?: boolean;
+
+    /**
+     * TR: Blur event'inde değeri transform et.
+     * EN: Transform value on blur event.
+     *
+     * @example
+     * ```typescript
+     * transformOnBlur: (v) => v.toLowerCase().trim()
+     * ```
+     */
+    transformOnBlur?: (value: unknown) => unknown;
+
+    /**
+     * TR: Değer değiştiğinde transform et.
+     * EN: Transform value on change.
+     */
+    transformOnChange?: (value: unknown) => unknown;
+
+    /**
+     * TR: Validation debounce süresi (ms).
+     * Sadece bu alan için geçerli.
+     * EN: Validation debounce time (ms).
+     * Only applies to this field.
+     */
+    validationDebounce?: number;
 }

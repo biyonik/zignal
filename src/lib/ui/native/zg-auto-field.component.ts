@@ -4,7 +4,7 @@ import {
     forwardRef,
     signal,
     computed,
-    input
+    input, Type
 } from '@angular/core';
 import {
     ControlValueAccessor,
@@ -28,6 +28,26 @@ import { PhoneField, PhoneFieldConfig } from '../../fields/phone.field';
 import { ColorField, ColorFieldConfig } from '../../fields/color.field';
 import { DateField, DateFieldConfig } from '../../fields/date.field';
 import { FileField, FileFieldConfig, FileInfo } from '../../fields/file.field';
+
+export interface FieldComponent {
+    field: any;
+    value: any;
+    onChange: (value: any) => void;
+    onBlur: () => void;
+}
+
+export const FIELD_COMPONENTS: Record<string, () => Promise<Type<FieldComponent>>> = {
+    'string': () => import('./string-field.component').then(m => m.StringFieldComponent),
+    'number': () => import('./number-field.component').then(m => m.NumberFieldComponent),
+    'date': () => import('./date-field.component').then(m => m.DateFieldComponent),
+    'select': () => import('./select-field.component').then(m => m.SelectFieldComponent),
+    'file': () => import('./file-field.component').then(m => m.FileFieldComponent),
+    'boolean': () => import('./boolean-field.component').then(m => m.BooleanFieldComponent),
+    'password': () => import('./password-field.component').then(m => m.PasswordFieldComponent),
+    'textarea': () => import('./textarea-field.component').then(m => m.TextareaFieldComponent),
+    'array': () => import('./array-field.component').then(m => m.ArrayFieldComponent),
+    'group': () => import('./group-field.component').then(m => m.GroupFieldComponent),
+};
 
 /**
  * @fileoverview

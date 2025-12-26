@@ -236,19 +236,55 @@ export class NumberField extends BaseField<number> {
     override fromImport(raw: unknown): number | null {
         if (raw == null) return null;
 
-        // TR: Zaten number ise direkt kullan
-        // EN: Use directly if already number
+        // Zaten number ise direkt kullan
         if (typeof raw === 'number') {
             if (isNaN(raw)) return null;
             return this.schema().safeParse(raw).success ? raw : null;
         }
 
-        // TR: String ise parse et
-        // EN: Parse if string
+        // String ise parse et
         if (typeof raw === 'string') {
-            // TR: Türkçe format desteği (virgülü noktaya çevir)
-            // EN: Turkish format support (convert comma to dot)
-            const normalized = raw.replace(',', '.').replace(/\s/g, '');
+            let normalized = raw.trim();
+
+            // Boş string kontrolü
+            if (normalized === '') return null;
+
+            // Türkçe format desteği - binlik ayracı ve ondalık virgül
+            // Örnek: "1.234,56" -> "1234.56"
+            // Örnek: "1,234.56" -> "1234.56" (Amerikan formatı)
+
+            // Önce formatı tespit et
+            const hasComma = normalized.includes(',');
+            const hasDot = normalized.includes('.');
+
+            if (hasComma && hasDot) {
+                // Her iki karakter de var - hangisi ondalık ayracı?
+                const lastCommaIdx = normalized.lastIndexOf(',');
+                const lastDotIdx = normalized.lastIndexOf('.');
+
+                if (lastCommaIdx > lastDotIdx) {
+                    // Virgül sonra geliyor: Türkçe format (1.234,56)
+                    normalized = normalized.replace(/\./g, '').replace(',', '.');
+                } else {
+                    // Nokta sonra geliyor: Amerikan formatı (1,234.56)
+                    normalized = normalized.replace(/,/g, '');
+                }
+            } else if (hasComma) {
+                // Sadece virgül var
+                const commaCount = (normalized.match(/,/g) || []).length;
+                if (commaCount === 1) {
+                    // Tek virgül - muhtemelen ondalık ayracı
+                    normalized = normalized.replace(',', '.');
+                } else {
+                    // Birden fazla virgül - binlik ayracı
+                    normalized = normalized.replace(/,/g, '');
+                }
+            }
+            // Sadece nokta varsa dokunma
+
+            // Boşlukları kaldır
+            normalized = normalized.replace(/\s/g, '');
+
             const num = parseFloat(normalized);
 
             if (isNaN(num)) return null;

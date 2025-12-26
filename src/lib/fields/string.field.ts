@@ -57,6 +57,27 @@ export interface StringFieldConfig extends FieldConfig {
      * EN: Is URL format validation active?
      */
     url?: boolean;
+
+    /**
+     * TR: Değeri otomatik trim et.
+     * EN: Automatically trim value.
+     * @default false
+     */
+    trim?: boolean;
+
+    /**
+     * TR: Küçük harfe dönüştür.
+     * EN: Convert to lowercase.
+     * @default false
+     */
+    lowercase?: boolean;
+
+    /**
+     * TR: Büyük harfe dönüştür.
+     * EN: Convert to uppercase.
+     * @default false
+     */
+    uppercase?: boolean;
 }
 
 /**
@@ -154,8 +175,23 @@ export class StringField extends BaseField<string> {
     schema(): z.ZodType<string> {
         let base = z.string();
 
+        const transforms: ((val: string) => string)[] = [];
+
+
         if (this.config.required) {
             base = base.min(1, t('required'));
+        }
+
+        if (this.config.trim) {
+            transforms.push((val) => val.trim());
+        }
+
+        if (this.config.lowercase) {
+            transforms.push((val) => val.toLowerCase());
+        }
+
+        if (this.config.uppercase) {
+            transforms.push((val) => val.toUpperCase());
         }
 
         // TR: Minimum karakter kontrolü
@@ -197,10 +233,14 @@ export class StringField extends BaseField<string> {
             );
         }
 
-        const processed = z.preprocess(
-            (val) => val === null ? '' : val,
-            base
-        );
+        const processed = z.preprocess((val) => {
+            if (val === null || val === undefined) return '';
+            let result = String(val);
+            for (const transform of transforms) {
+                result = transform(result);
+            }
+            return result;
+        }, base);
 
         return this.applyRequired(processed);
     }

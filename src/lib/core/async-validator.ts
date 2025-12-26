@@ -216,9 +216,38 @@ export class AsyncValidator<T = unknown> {
      * EN: Converts value to cache key.
      */
     private getCacheKey(value: T): string {
-        if (typeof value === 'string') return value;
-        if (typeof value === 'number') return String(value);
-        return JSON.stringify(value);
+        if (value === null) return '__null__';
+        if (value === undefined) return '__undefined__';
+        if (typeof value === 'string') return `s:${value}`;
+        if (typeof value === 'number') return `n:${value}`;
+        if (typeof value === 'boolean') return `b:${value}`;
+
+        // Object için stable serialization
+        if (typeof value === 'object') {
+            return `o:${this.stableStringify(value)}`;
+        }
+
+        return `u:${String(value)}`;
+    }
+
+    /**
+     * Object key sırası garantili JSON stringify
+     */
+    private stableStringify(obj: unknown): string {
+        if (obj === null) return 'null';
+        if (typeof obj !== 'object') return JSON.stringify(obj);
+
+        if (Array.isArray(obj)) {
+            return '[' + obj.map(item => this.stableStringify(item)).join(',') + ']';
+        }
+
+        const keys = Object.keys(obj as Record<string, unknown>).sort();
+        const pairs = keys.map(key => {
+            const value = (obj as Record<string, unknown>)[key];
+            return `"${key}":${this.stableStringify(value)}`;
+        });
+
+        return '{' + pairs.join(',') + '}';
     }
 
     /**

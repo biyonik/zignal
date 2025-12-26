@@ -161,13 +161,11 @@ export class ZgFormDirective<T extends FormDataType> implements OnInit, OnDestro
     }
 
     private setupSync(): void {
-        if (!this.formGroup || this.syncMode === 'zignal') {
-            return; // Sync gerekmiyor
+        if (!this.formGroup) {
+            return;
         }
 
-        // Zignal → Angular sync
-        // @ts-ignore
-        if (this.syncMode === 'zignal' || this.syncMode === 'bidirectional') {
+        if (this.syncMode === 'bidirectional') {
             const effectRef = effect(() => {
                 if (!this.formState || !this.formGroup) return;
 

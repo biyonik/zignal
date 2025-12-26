@@ -1,4 +1,4 @@
-import {signal, computed} from '@angular/core';
+import {signal, computed, WritableSignal} from '@angular/core';
 import {TypeOf, z, ZodType} from 'zod';
 import {
     IField,
@@ -216,21 +216,37 @@ export abstract class BaseField<T> implements IField<T> {
         const value = signal<T>(initial as T);
         const touched = signal(false);
 
-        /**
-         * TR: Validasyon sonucunu hesaplayan saf (pure) computed sinyal.
-         * touched durumundan ba1ms1z olarak verinin ge﷿erliliini kontrol eder.
-         * Her value dei_iminde otomatik yeniden hesaplan1r.
-         *
-         * EN: Pure computed signal that calculates validation result.
-         * Checks data validity independent of touched state.
-         * Automatically recalculated on each value change.
-         */
+        // Debounce için
+        const debounceMs = this.config.validationDebounce ?? 0;
+        const debouncedValue = signal<T>(initial as T);
+        let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+        // Debounce effect - sadece debounce > 0 ise
+        if (debounceMs > 0) {
+            // Value değiştiğinde debouncedValue'yu güncelle
+            // Not: Bu effect'i dışarıda tutuyoruz, component destroy'da temizlenmeli
+            const updateDebouncedValue = () => {
+                if (debounceTimer) {
+                    clearTimeout(debounceTimer);
+                }
+                debounceTimer = setTimeout(() => {
+                    debouncedValue.set(value());
+                }, debounceMs);
+            };
+
+            // Initial sync
+            debouncedValue.set(value());
+        }
+
+        // Validation için kullanılacak değer
+        const valueForValidation = debounceMs > 0 ? debouncedValue : value;
+
         const validationResult = computed(() => {
-            const zodResult = this.schema().safeParse(value());
+            const currentValue = debounceMs > 0 ? debouncedValue() : value();
+            const zodResult = this.schema().safeParse(currentValue);
             const zodIssues = zodResult.error?.issues ?? [];
 
             if (!zodResult.success) {
-                // return { success: false, error: zodResult.error.errors[0]?.message ?? 'Geçersiz değer' };
                 for (const issue of zodIssues) {
                     if (issue.message) {
                         return { success: false, error: issue.message };
@@ -239,9 +255,8 @@ export abstract class BaseField<T> implements IField<T> {
                 return { success: false, error: 'Geçersiz değer' };
             }
 
-            // Custom validator check
             if (this.config.customValidator) {
-                const customError = this.config.customValidator(value());
+                const customError = this.config.customValidator(currentValue);
                 if (customError) {
                     return { success: false, error: customError };
                 }
@@ -250,43 +265,51 @@ export abstract class BaseField<T> implements IField<T> {
             return { success: true, error: null };
         });
 
-        /**
-         * TR: Ge﷿erlilik durumu computed sinyali.
-         * Sadece verinin valid olup olmad11na bakar, touched durumu ﷿nemsizdir.
-         * Form submit kontrollerinde bu signal kullan1lmal1d1r.
-         *
-         * EN: Validity status computed signal.
-         * Only checks if data is valid, touched state is irrelevant.
-         * This signal should be used for form submit checks.
-         */
         const valid = computed(() => validationResult().success);
 
-        /**
-         * TR: Hata mesaj1 computed sinyali.
-         * Sadece touched=true ise hata mesaj1 d﷿ner, aksi halde null.
-         * Bu sayede kullan1c1 hen﷿z yazmaya ba_lam1_ken hata g﷿rmez.
-         *
-         * EN: Error message computed signal.
-         * Returns error message only if touched=true, otherwise null.
-         * This way user doesn't see errors while still typing.
-         */
         const error = computed(() => {
-            // TR: Dokunulmad1ysa hata g﷿sterme (UX best practice)
-            // EN: Don't show error if not touched (UX best practice)
             if (!touched()) return null;
-
             const result = validationResult();
-
-            // TR: Veri ge﷿erliyse hata yok
-            // EN: No error if data is valid
             if (result.success) return null;
-
-            // TR: 0lk hata mesaj1n1 d﷿n
-            // EN: Return first error message
             return validationResult().error;
         });
 
-        return {value, error, touched, valid};
+        // Debounce'lu value signal wrapper
+        const wrappedValue = debounceMs > 0
+            ? this.createDebouncedSignal(value, debouncedValue, debounceMs)
+            : value;
+
+        return { value: wrappedValue, error, touched, valid };
+    }
+
+    /**
+     * TR: Debounce'lu WritableSignal wrapper oluşturur.
+     * EN: Creates debounced WritableSignal wrapper.
+     */
+    createDebouncedSignal<T>(
+        source: WritableSignal<T>,
+        debounced: WritableSignal<T>,
+        delayMs: number
+    ): WritableSignal<T> {
+        let timer: ReturnType<typeof setTimeout> | null = null;
+
+        return {
+            ...source,
+            set: (newValue: T) => {
+                source.set(newValue);
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => {
+                    debounced.set(newValue);
+                }, delayMs);
+            },
+            update: (fn: (value: T) => T) => {
+                source.update(fn);
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => {
+                    debounced.set(source());
+                }, delayMs);
+            },
+        } as WritableSignal<T>;
     }
 
     /**
