@@ -22,28 +22,31 @@ import { SlugField } from '../../../fields/slug.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-slug-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-slug-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <div class="zg-slug-wrapper">
-                <span *ngIf="prefix" class="zg-slug-prefix">{{ prefix }}</span>
+                <span *ngIf="prefixText" class="zg-slug-prefix">{{ prefixText }}</span>
                 <input
-                    type="text"
-                    [id]="field().name"
-                    [name]="field().name"
-                    [value]="value ?? ''"
-                    [placeholder]="field().config.placeholder ?? 'ornek-slug'"
-                    [disabled]="disabledStatus"
-                    [readonly]="readonly()"
-                    [attr.aria-label]="field().label"
-                    [attr.aria-invalid]="showError"
-                    [class.zg-invalid]="showError"
-                    class="zg-input"
-                    (input)="onInput($event)"
-                    (blur)="handleBlur()"
+                        type="text"
+                        [id]="field().name"
+                        [name]="field().name"
+                        [value]="value ?? ''"
+                        [placeholder]="field().config.placeholder ?? 'ornek-slug'"
+                        [disabled]="disabledStatus"
+                        [readonly]="readonly()"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        [attr.aria-label]="field().label"
+                        [attr.aria-invalid]="showError"
+                        [class.zg-invalid]="showError"
+                        class="zg-input"
+                        [class]="inputCssClass"
+                        (input)="onInput($event)"
+                        (blur)="handleBlur()"
                 />
             </div>
 

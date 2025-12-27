@@ -22,45 +22,48 @@ import { ColorField } from '../../../fields/color.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-color-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-color-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <div class="zg-color-wrapper">
                 <input
-                    type="color"
-                    [id]="field().name"
-                    [name]="field().name"
-                    [value]="value ?? '#000000'"
-                    [disabled]="disabledStatus"
-                    class="zg-color-picker"
-                    (input)="onColorInput($event)"
-                    (blur)="handleBlur()"
+                        type="color"
+                        [id]="field().name"
+                        [name]="field().name"
+                        [value]="value ?? '#000000'"
+                        [disabled]="disabledStatus"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        class="zg-color-picker"
+                        (input)="onColorInput($event)"
+                        (blur)="handleBlur()"
                 />
                 <input
-                    type="text"
-                    [value]="value ?? ''"
-                    [placeholder]="'#RRGGBB'"
-                    [disabled]="disabledStatus"
-                    [readonly]="readonly()"
-                    [class.zg-invalid]="showError"
-                    class="zg-input zg-color-text"
-                    (input)="onTextInput($event)"
-                    (blur)="handleBlur()"
+                        type="text"
+                        [value]="value ?? ''"
+                        [placeholder]="'#RRGGBB'"
+                        [disabled]="disabledStatus"
+                        [readonly]="readonly()"
+                        [class.zg-invalid]="showError"
+                        class="zg-input zg-color-text"
+                        [class]="inputCssClass"
+                        (input)="onTextInput($event)"
+                        (blur)="handleBlur()"
                 />
             </div>
 
             <div *ngIf="presets.length > 0" class="zg-color-presets">
                 <button
-                    *ngFor="let preset of presets"
-                    type="button"
-                    class="zg-color-preset"
-                    [style.background-color]="preset"
-                    [class.selected]="value === preset"
-                    [disabled]="disabledStatus"
-                    (click)="selectPreset(preset)"
+                        *ngFor="let preset of presets"
+                        type="button"
+                        class="zg-color-preset"
+                        [style.background-color]="preset"
+                        [class.selected]="value === preset"
+                        [disabled]="disabledStatus"
+                        (click)="selectPreset(preset)"
                 ></button>
             </div>
 

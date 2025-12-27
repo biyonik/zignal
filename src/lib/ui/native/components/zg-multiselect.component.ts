@@ -22,37 +22,40 @@ import { MultiselectField } from '../../../fields/multiselect.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-multiselect-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-multiselect-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <div class="zg-multiselect-container" [class.zg-invalid]="showError">
                 <div class="zg-multiselect-selected">
-                    <span *ngFor="let val of selectedValues" class="zg-chip">
-                        {{ getLabel(val) }}
-                        <button 
-                            type="button" 
+                <span *ngFor="let val of selectedValues" class="zg-chip">
+                    {{ getLabel(val) }}
+                    <button
+                            type="button"
                             class="zg-chip-remove"
                             [disabled]="disabledStatus"
                             (click)="removeValue(val)"
-                        >×</button>
-                    </span>
+                    >×</button>
+                </span>
                 </div>
 
                 <select
-                    [id]="field().name"
-                    [disabled]="disabledStatus || isMaxSelected"
-                    class="zg-select"
-                    (change)="onAdd($event)"
-                    (blur)="handleBlur()"
+                        [id]="field().name"
+                        [disabled]="disabledStatus || isMaxSelected"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        class="zg-select"
+                        [class]="inputCssClass"
+                        (change)="onAdd($event)"
+                        (blur)="handleBlur()"
                 >
                     <option value="">{{ placeholder }}</option>
-                    <option 
-                        *ngFor="let option of availableOptions" 
-                        [value]="option.value"
-                        [disabled]="option.disabled"
+                    <option
+                            *ngFor="let option of availableOptions"
+                            [value]="option.value"
+                            [disabled]="option.disabled"
                     >
                         {{ option.label }}
                     </option>

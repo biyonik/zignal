@@ -22,8 +22,8 @@ import { MoneyField } from '../../../fields/money.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-money-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-money-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
@@ -31,22 +31,25 @@ import { MoneyField } from '../../../fields/money.field';
             <div class="zg-money-wrapper">
                 <span class="zg-money-symbol">{{ currencySymbol }}</span>
                 <input
-                    type="number"
-                    [id]="field().name"
-                    [name]="field().name"
-                    [value]="value"
-                    [placeholder]="field().config.placeholder ?? '0.00'"
-                    [disabled]="disabledStatus"
-                    [readonly]="readonly()"
-                    [min]="field().config.min"
-                    [max]="field().config.max"
-                    [step]="step"
-                    [attr.aria-label]="field().label"
-                    [attr.aria-invalid]="showError"
-                    [class.zg-invalid]="showError"
-                    class="zg-input"
-                    (input)="onInput($event)"
-                    (blur)="handleBlur()"
+                        type="number"
+                        [id]="field().name"
+                        [name]="field().name"
+                        [value]="value"
+                        [placeholder]="field().config.placeholder ?? '0.00'"
+                        [disabled]="disabledStatus"
+                        [readonly]="readonly()"
+                        [min]="field().config.min"
+                        [max]="field().config.max"
+                        [step]="step"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        [attr.aria-label]="field().label"
+                        [attr.aria-invalid]="showError"
+                        [class.zg-invalid]="showError"
+                        class="zg-input"
+                        [class]="inputCssClass"
+                        (input)="onInput($event)"
+                        (blur)="handleBlur()"
                 />
             </div>
 

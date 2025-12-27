@@ -22,30 +22,33 @@ import { PercentField } from '../../../fields/percent.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-percent-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-percent-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <div class="zg-percent-wrapper">
                 <input
-                    type="number"
-                    [id]="field().name"
-                    [name]="field().name"
-                    [value]="value"
-                    [placeholder]="field().config.placeholder ?? '0'"
-                    [disabled]="disabledStatus"
-                    [readonly]="readonly()"
-                    [min]="field().config.min ?? 0"
-                    [max]="field().config.max ?? 100"
-                    [step]="field().config.step ?? 1"
-                    [attr.aria-label]="field().label"
-                    [attr.aria-invalid]="showError"
-                    [class.zg-invalid]="showError"
-                    class="zg-input"
-                    (input)="onInput($event)"
-                    (blur)="handleBlur()"
+                        type="number"
+                        [id]="field().name"
+                        [name]="field().name"
+                        [value]="value"
+                        [placeholder]="field().config.placeholder ?? '0'"
+                        [disabled]="disabledStatus"
+                        [readonly]="readonly()"
+                        [min]="field().config.min ?? 0"
+                        [max]="field().config.max ?? 100"
+                        [step]="field().config.step ?? 1"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        [attr.aria-label]="field().label"
+                        [attr.aria-invalid]="showError"
+                        [class.zg-invalid]="showError"
+                        class="zg-input"
+                        [class]="inputCssClass"
+                        (input)="onInput($event)"
+                        (blur)="handleBlur()"
                 />
                 <span class="zg-percent-symbol">%</span>
             </div>

@@ -22,40 +22,43 @@ import { JsonField } from '../../../fields/json.field';
         },
     ],
     template: `
-        <div class="zg-field zg-json-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-json-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <textarea
-                [id]="field().name"
-                [name]="field().name"
-                [value]="jsonString"
-                [placeholder]="field().config.placeholder ?? '{}'"
-                [disabled]="disabledStatus"
-                [readonly]="readonly()"
-                [rows]="6"
-                [attr.aria-label]="field().label"
-                [attr.aria-invalid]="showError || !isValidJson"
-                [class.zg-invalid]="showError || !isValidJson"
-                class="zg-textarea zg-json-editor"
-                (input)="onInput($event)"
-                (blur)="handleBlur()"
+                    [id]="field().name"
+                    [name]="field().name"
+                    [value]="jsonString"
+                    [placeholder]="field().config.placeholder ?? '{}'"
+                    [disabled]="disabledStatus"
+                    [readonly]="readonly()"
+                    [rows]="6"
+                    [attr.tabindex]="tabIndex"
+                    [attr.autofocus]="shouldAutofocus ? true : null"
+                    [attr.aria-label]="field().label"
+                    [attr.aria-invalid]="showError || !isValidJson"
+                    [class.zg-invalid]="showError || !isValidJson"
+                    class="zg-textarea zg-json-editor"
+                    [class]="inputCssClass"
+                    (input)="onInput($event)"
+                    (blur)="handleBlur()"
             ></textarea>
 
             <div class="zg-json-toolbar">
-                <button 
-                    type="button" 
-                    class="zg-json-btn"
-                    [disabled]="disabledStatus"
-                    (click)="formatJson()"
+                <button
+                        type="button"
+                        class="zg-json-btn"
+                        [disabled]="disabledStatus"
+                        (click)="formatJson()"
                 >Formatla</button>
-                <button 
-                    type="button" 
-                    class="zg-json-btn"
-                    [disabled]="disabledStatus"
-                    (click)="minifyJson()"
+                <button
+                        type="button"
+                        class="zg-json-btn"
+                        [disabled]="disabledStatus"
+                        (click)="minifyJson()"
                 >Küçült</button>
                 <span *ngIf="!isValidJson" class="zg-json-invalid">⚠️ Geçersiz JSON</span>
             </div>

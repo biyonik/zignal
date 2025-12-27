@@ -22,8 +22,8 @@ import { FileField, FileInfo } from '../../../fields/file.field';
         },
     ],
     template: `
-        <div class="zg-field zg-file-field" [class]="cssClass()">
-            <label *ngIf="field().label" class="zg-label">
+        <div class="zg-field zg-file-field" [class]="wrapperClass">
+            <label *ngIf="field().label" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
@@ -44,6 +44,8 @@ import { FileField, FileInfo } from '../../../fields/file.field';
                         [accept]="acceptTypes"
                         [multiple]="field().config.multiple ?? false"
                         [disabled]="disabledStatus"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
                         class="zg-file-input"
                         (change)="onFileChange($event)"
                 />

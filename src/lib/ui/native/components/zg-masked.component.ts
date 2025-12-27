@@ -22,26 +22,29 @@ import { MaskedField } from '../../../fields/masked.field';
         },
     ],
     template: `
-        <div class="zg-field zg-masked-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-masked-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <input
-                type="text"
-                [id]="field().name"
-                [name]="field().name"
-                [value]="displayValue"
-                [placeholder]="maskPlaceholder"
-                [disabled]="disabledStatus"
-                [readonly]="readonly()"
-                [attr.aria-label]="field().label"
-                [attr.aria-invalid]="showError"
-                [class.zg-invalid]="showError"
-                class="zg-input"
-                (input)="onInput($event)"
-                (blur)="handleBlur()"
+                    type="text"
+                    [id]="field().name"
+                    [name]="field().name"
+                    [value]="displayValue"
+                    [placeholder]="maskPlaceholder"
+                    [disabled]="disabledStatus"
+                    [readonly]="readonly()"
+                    [attr.tabindex]="tabIndex"
+                    [attr.autofocus]="shouldAutofocus ? true : null"
+                    [attr.aria-label]="field().label"
+                    [attr.aria-invalid]="showError"
+                    [class.zg-invalid]="showError"
+                    class="zg-input"
+                    [class]="inputCssClass"
+                    (input)="onInput($event)"
+                    (blur)="handleBlur()"
             />
 
             <small *ngIf="field().config.hint && !showError" class="zg-hint">

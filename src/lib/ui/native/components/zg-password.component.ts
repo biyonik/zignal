@@ -22,37 +22,40 @@ import { PasswordField } from '../../../fields/password.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-password-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-password-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <div class="zg-password-wrapper">
                 <input
-                    [type]="showPassword() ? 'text' : 'password'"
-                    [id]="field().name"
-                    [name]="field().name"
-                    [value]="value ?? ''"
-                    [placeholder]="field().config.placeholder ?? ''"
-                    [disabled]="disabledStatus"
-                    [readonly]="readonly()"
-                    [attr.minlength]="field().config.minLength"
-                    [attr.maxlength]="field().config.maxLength"
-                    [attr.aria-label]="field().label"
-                    [attr.aria-invalid]="showError"
-                    [class.zg-invalid]="showError"
-                    class="zg-input"
-                    autocomplete="new-password"
-                    (input)="onInput($event)"
-                    (blur)="handleBlur()"
+                        [type]="showPassword() ? 'text' : 'password'"
+                        [id]="field().name"
+                        [name]="field().name"
+                        [value]="value ?? ''"
+                        [placeholder]="field().config.placeholder ?? ''"
+                        [disabled]="disabledStatus"
+                        [readonly]="readonly()"
+                        [attr.minlength]="field().config.minLength"
+                        [attr.maxlength]="maxLengthValue ?? field().config.maxLength"
+                        [attr.autocomplete]="autocompleteValue ?? 'new-password'"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        [attr.aria-label]="field().label"
+                        [attr.aria-invalid]="showError"
+                        [class.zg-invalid]="showError"
+                        class="zg-input"
+                        [class]="inputCssClass"
+                        (input)="onInput($event)"
+                        (blur)="handleBlur()"
                 />
                 <button
-                    type="button"
-                    class="zg-password-toggle"
-                    [disabled]="disabledStatus"
-                    (click)="togglePassword()"
-                    [attr.aria-label]="showPassword() ? 'Şifreyi gizle' : 'Şifreyi göster'"
+                        type="button"
+                        class="zg-password-toggle"
+                        [disabled]="disabledStatus"
+                        (click)="togglePassword()"
+                        [attr.aria-label]="showPassword() ? 'Şifreyi gizle (Hide Password)' : 'Şifreyi göster (Show Password)'"
                 >
                     {{ showPassword() ? '🙈' : '👁️' }}
                 </button>
@@ -60,13 +63,13 @@ import { PasswordField } from '../../../fields/password.field';
 
             <div *ngIf="field().config.showStrength !== false && value" class="zg-strength">
                 <div class="zg-strength-bar">
-                    <div 
-                        class="zg-strength-fill"
-                        [style.width.%]="strength"
-                        [class.weak]="strength <= 25"
-                        [class.fair]="strength > 25 && strength <= 50"
-                        [class.good]="strength > 50 && strength <= 75"
-                        [class.strong]="strength > 75"
+                    <div
+                            class="zg-strength-fill"
+                            [style.width.%]="strength"
+                            [class.weak]="strength <= 25"
+                            [class.fair]="strength > 25 && strength <= 50"
+                            [class.good]="strength > 50 && strength <= 75"
+                            [class.strong]="strength > 75"
                     ></div>
                 </div>
                 <span class="zg-strength-text">{{ strengthText }}</span>
@@ -154,10 +157,10 @@ export class ZgPasswordComponent extends BaseNativeComponent<PasswordField, stri
     }
 
     get strengthText(): string {
-        if (this.strength <= 25) return 'Zayıf';
-        if (this.strength <= 50) return 'Orta';
-        if (this.strength <= 75) return 'İyi';
-        return 'Güçlü';
+        if (this.strength <= 25) return 'Zayıf (Weak)';
+        if (this.strength <= 50) return 'Orta (Fair)';
+        if (this.strength <= 75) return 'İyi (Good)';
+        return 'Güçlü (Strong)';
     }
 
     togglePassword(): void {

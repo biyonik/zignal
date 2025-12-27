@@ -22,22 +22,25 @@ import { SelectField } from '../../../fields/select.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-select-field" [class]="cssClass">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-select-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <select
-                [id]="field().name"
-                [name]="field().name"
-                [disabled]="disabledStatus"
-                [attr.aria-label]="field().label"
-                [attr.aria-invalid]="showError"
-                [class.zg-invalid]="showError"
-                class="zg-select"
-                (change)="onSelect($event)"
-                (blur)="handleBlur()"
+                    [id]="field().name"
+                    [name]="field().name"
+                    [disabled]="disabledStatus"
+                    [attr.tabindex]="tabIndex"
+                    [attr.autofocus]="shouldAutofocus ? true : null"
+                    [attr.aria-label]="field().label"
+                    [attr.aria-invalid]="showError"
+                    [class.zg-invalid]="showError"
+                    class="zg-select"
+                    [class]="inputCssClass"
+                    (change)="onSelect($event)"
+                    (blur)="handleBlur()"
             >
                 <option value="" [selected]="value == null">
                     {{ field().config.emptyLabel ?? 'Seçiniz...' }}
@@ -45,10 +48,10 @@ import { SelectField } from '../../../fields/select.field';
 
                 <ng-container *ngIf="!hasGroups; else groupedOptions">
                     <option
-                        *ngFor="let opt of field().getOptions()"
-                        [value]="opt.value"
-                        [selected]="value === opt.value"
-                        [disabled]="opt.disabled"
+                            *ngFor="let opt of field().getOptions()"
+                            [value]="opt.value"
+                            [selected]="value === opt.value"
+                            [disabled]="opt.disabled"
                     >
                         {{ opt.label }}
                     </option>
@@ -57,10 +60,10 @@ import { SelectField } from '../../../fields/select.field';
                 <ng-template #groupedOptions>
                     <optgroup *ngFor="let group of groups" [label]="group.name">
                         <option
-                            *ngFor="let opt of group.options"
-                            [value]="opt.value"
-                            [selected]="value === opt.value"
-                            [disabled]="opt.disabled"
+                                *ngFor="let opt of group.options"
+                                [value]="opt.value"
+                                [selected]="value === opt.value"
+                                [disabled]="opt.disabled"
                         >
                             {{ opt.label }}
                         </option>

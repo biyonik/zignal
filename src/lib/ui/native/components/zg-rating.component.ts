@@ -22,37 +22,38 @@ import { RatingField } from '../../../fields/rating.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-rating-field" [class]="cssClass">
-            <label *ngIf="field().label" class="zg-label">
+        <div class="zg-field zg-rating-field" [class]="wrapperClass">
+            <label *ngIf="field().label" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
-            <div 
-                class="zg-stars"
-                [class.zg-readonly]="readonly || field().config.readOnly"
-                [style.--star-size]="starSize + 'px'"
-                [style.--active-color]="activeColor"
-                [style.--inactive-color]="inactiveColor"
+            <div
+                    class="zg-stars"
+                    [class.zg-readonly]="readonly() || field().config.readOnly"
+                    [style.--star-size]="starSize + 'px'"
+                    [style.--active-color]="activeColor"
+                    [style.--inactive-color]="inactiveColor"
             >
                 <button
-                    *ngFor="let _star of stars; let i = index"
-                    type="button"
-                    class="zg-star"
-                    [class.zg-active]="(value ?? 0) > i"
-                    [class.zg-half]="allowHalf && (value ?? 0) - i === 0.5"
-                    [disabled]="disabledStatus || readonly || field().config.readOnly"
-                    (click)="onStarClick(i + 1)"
-                    (mouseenter)="onStarHover(i + 1)"
-                    (mouseleave)="onStarLeave()"
-                    [attr.aria-label]="(i + 1) + ' yıldız'"
+                        *ngFor="let _star of stars; let i = index"
+                        type="button"
+                        class="zg-star"
+                        [class.zg-active]="(value ?? 0) > i"
+                        [class.zg-half]="allowHalf && (value ?? 0) - i === 0.5"
+                        [disabled]="disabledStatus || readonly() || field().config.readOnly"
+                        [attr.tabindex]="tabIndex"
+                        (click)="onStarClick(i + 1)"
+                        (mouseenter)="onStarHover(i + 1)"
+                        (mouseleave)="onStarLeave()"
+                        [attr.aria-label]="(i + 1) + ' yıldız'"
                 >
                     <span class="zg-star-icon">★</span>
                 </button>
 
                 <span class="zg-rating-value" *ngIf="value != null">
-                    {{ value }}/{{ maxStars }}
-                </span>
+                {{ value }}/{{ maxStars }}
+            </span>
             </div>
 
             <small *ngIf="field().config.hint && !showError" class="zg-hint">

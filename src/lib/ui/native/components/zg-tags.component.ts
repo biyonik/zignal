@@ -22,54 +22,57 @@ import { TagsField } from '../../../fields/tags.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-tags-field" [class]="cssClass">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-tags-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
-            <div 
-                class="zg-tags-container"
-                [class.zg-focused]="isFocused"
-                [class.zg-invalid]="showError"
-                (click)="focusInput()"
+            <div
+                    class="zg-tags-container"
+                    [class.zg-focused]="isFocused"
+                    [class.zg-invalid]="showError"
+                    [class]="inputCssClass"
+                    (click)="focusInput()"
             >
                 <!-- Tags -->
                 <span *ngFor="let tag of value ?? []; let i = index" class="zg-tag">
-                    {{ tag }}
+                {{ tag }}
                     <button
-                        type="button"
-                        class="zg-tag-remove"
-                        [disabled]="disabledStatus"
-                        (click)="removeTag(i, $event)"
-                        aria-label="Kaldır"
+                            type="button"
+                            class="zg-tag-remove"
+                            [disabled]="disabledStatus"
+                            (click)="removeTag(i, $event)"
+                            aria-label="Kaldır"
                     >
-                        ×
-                    </button>
-                </span>
+                    ×
+                </button>
+            </span>
 
                 <!-- Input -->
                 <input
-                    #tagInput
-                    type="text"
-                    [id]="field().name"
-                    [placeholder]="inputPlaceholder"
-                    [disabled]="disabledStatus"
-                    class="zg-tags-input"
-                    (keydown)="onKeyDown($event)"
-                    (input)="onInput($event)"
-                    (focus)="isFocused = true"
-                    (blur)="onBlur()"
+                        #tagInput
+                        type="text"
+                        [id]="field().name"
+                        [placeholder]="inputPlaceholder"
+                        [disabled]="disabledStatus"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        class="zg-tags-input"
+                        (keydown)="onKeyDown($event)"
+                        (input)="onInput($event)"
+                        (focus)="isFocused = true"
+                        (blur)="onBlur()"
                 />
             </div>
 
             <!-- Suggestions -->
             <div *ngIf="showSuggestions && filteredSuggestions.length > 0" class="zg-suggestions">
                 <button
-                    *ngFor="let suggestion of filteredSuggestions"
-                    type="button"
-                    class="zg-suggestion"
-                    (click)="addTag(suggestion)"
+                        *ngFor="let suggestion of filteredSuggestions"
+                        type="button"
+                        class="zg-suggestion"
+                        (click)="addTag(suggestion)"
                 >
                     {{ suggestion }}
                 </button>
