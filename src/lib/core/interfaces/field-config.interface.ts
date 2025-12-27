@@ -8,10 +8,22 @@ import {FieldProps} from "./field-props.interface";
 export type ExpressionFn = (values: Record<string, unknown>) => boolean;
 
 /**
- * TR: Expression tipi - fonksiyon veya field adı string
- * EN: Expression type - function or field name string
+ * TR: Expression tipi - fonksiyon veya string expression
+ * EN: Expression type - function or string expression
+ *
+ * @example
+ * ```typescript
+ * // Fonksiyon olarak
+ * hideExpression: (values) => !values.country
+ *
+ * // String expression olarak (JSON'a çevrilebilir!)
+ * hideExpression: "!country"
+ * hideExpression: "type !== 'individual'"
+ * ```
  */
-export type Expression = ExpressionFn | string;
+export type Expression<TResult = boolean> =
+    | ((values: Record<string, unknown>) => TResult)
+    | string;
 
 /**
  * @fileoverview
@@ -108,24 +120,23 @@ export interface FieldConfig {
     readonly?: boolean;
 
     /**
-     * TR: Alanın koşullu olarak zorunlu olup olmadığını belirleyen fonksiyon.
+     * TR: Alanın koşullu olarak zorunlu olup olmadığını belirleyen expression.
      * Form değerlerine göre dinamik zorunluluk tanımlamak için kullanılır.
-     * `required` değeri `true` ise bu fonksiyon göz ardı edilir.
      *
-     * EN: Function that determines if the field is conditionally required.
+     * EN: Expression that determines if the field is conditionally required.
      * Used to define dynamic requirement based on form values.
-     * If `required` is `true`, this function is ignored.
      *
      * @example
      * ```typescript
-     * // Kurumsal hesap seçildiğinde vergi numarası zorunlu
+     * // Fonksiyon olarak
      * requiredWhen: (values) => values.accountType === 'corporate'
      *
-     * // Ülke Türkiye ise TC Kimlik No zorunlu
-     * requiredWhen: (values) => values.country === 'TR'
+     * // String expression olarak (JSON'a çevrilebilir!)
+     * requiredWhen: "accountType === 'corporate'"
+     * requiredWhen: "country === 'TR' && age >= 18"
      * ```
      */
-    requiredWhen?: (values: Record<string, unknown>) => boolean;
+    requiredWhen?: Expression<boolean>;
 
     /**
      * TR: Varsayılan değer. Form oluşturulurken kullanılır.
@@ -148,10 +159,32 @@ export interface FieldConfig {
     pattern?: RegExp | string
 
     /**
-     * TR: Özel validasyon fonksiyonu. Zod şemasından sonra çalışır.
-     * EN: Custom validation function. Runs after Zod schema validation.
+     * TR: Özel validasyon expression'ı.
+     * Geçerliyse null, değilse hata mesajı döner.
+     *
+     * EN: Custom validation expression.
+     * Returns null if valid, error message otherwise.
+     *
+     * @example
+     * ```typescript
+     * // Fonksiyon olarak
+     * customValidator: (value) => {
+     *   return value.length >= 3 ? null : 'En az 3 karakter';
+     * }
+     *
+     * // Form values ile
+     * customValidator: (value, values) => {
+     *   return value === values.password ? null : 'Şifreler eşleşmiyor';
+     * }
+     *
+     * // String expression olarak (JSON'a çevrilebilir!)
+     * customValidator: "value.length >= 3 ? null : 'En az 3 karakter'"
+     * customValidator: "value === values.password ? null : 'Şifreler eşleşmiyor'"
+     * ```
      */
-    customValidator?: (value: unknown) => string | null;
+    customValidator?:
+        | string
+        | ((value: unknown, values?: Record<string, unknown>) => string | null);
 
     /**
      * TR: Değeri otomatik olarak trim et (string için).
@@ -161,21 +194,31 @@ export interface FieldConfig {
     trim?: boolean;
 
     /**
-     * TR: Blur event'inde değeri transform et.
-     * EN: Transform value on blur event.
+     * TR: Blur event'inde değeri transform eden expression.
+     * EN: Expression that transforms value on blur event.
      *
      * @example
      * ```typescript
+     * // Fonksiyon olarak
      * transformOnBlur: (v) => v.toLowerCase().trim()
+     *
+     * // String expression olarak (JSON'a çevrilebilir!)
+     * transformOnBlur: "value.toLowerCase().trim()"
      * ```
      */
-    transformOnBlur?: (value: unknown) => unknown;
+    transformOnBlur?: Expression<unknown>;
 
     /**
-     * TR: Değer değiştiğinde transform et.
-     * EN: Transform value on change.
+     * TR: Değer değiştiğinde transform eden expression.
+     * EN: Expression that transforms value on change.
+     *
+     * @example
+     * ```typescript
+     * // String expression
+     * transformOnChange: "value.toUpperCase()"
+     * ```
      */
-    transformOnChange?: (value: unknown) => unknown;
+    transformOnChange?: Expression<unknown>;
 
     /**
      * TR: Validation debounce süresi (ms).
@@ -186,29 +229,31 @@ export interface FieldConfig {
     validationDebounce?: number;
 
     /**
-     * TR: Alan gizleme koşulu. true dönerse alan gizlenir.
-     * EN: Field hide condition. Field is hidden if returns true.
+     * TR: Alan gizleme expression'ı. true dönerse alan gizlenir.
+     * EN: Field hide expression. Field is hidden if returns true.
      *
      * @example
+     * ```typescript
+     * // String expression (zaten destekleniyor!)
+     * hideExpression: "!country"
+     * hideExpression: "type !== 'individual'"
+     *
      * // Fonksiyon olarak
-     * hideExpression: (values) => !values['country']
-     *
-     * // String olarak (falsy ise gizle)
-     * hideExpression: '!country'
-     *
-     * // String olarak (eşitlik)
-     * hideExpression: 'type !== "individual"'
+     * hideExpression: (values) => !values.country
+     * ```
      */
-    hideExpression?: Expression;
+    hideExpression?: Expression<boolean>;
 
     /**
-     * TR: Alan devre dışı bırakma koşulu. true dönerse alan disabled olur.
-     * EN: Field disable condition. Field is disabled if returns true.
+     * TR: Alan devre dışı bırakma expression'ı.
+     * EN: Field disable expression.
      *
      * @example
-     * disableExpression: (values) => values['status'] === 'locked'
+     * ```typescript
+     * disableExpression: "status === 'locked'"
+     * ```
      */
-    disableExpression?: Expression;
+    disableExpression?: Expression<boolean>;
 
     /**
      * TR: Field lifecycle hooks.

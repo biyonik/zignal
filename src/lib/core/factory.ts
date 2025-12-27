@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {IField, FieldJsonSchema} from './interfaces';
+import {IField, FieldJsonSchema, FieldConfig} from './interfaces';
 import {FIELD_REGISTRY, isFieldTypeRegistered} from './registry';
 import {StringField} from '../fields';
 
@@ -194,13 +194,80 @@ export class SchemaFactory {
 
     /**
      * TR: Tek bir Field'ı JSON şemasına dönüştürür.
+     * Fonksiyonları filtreler, sadece JSON-safe değerleri saklar.
+     *
      * EN: Converts single Field to JSON schema.
+     * Filters out functions, keeps only JSON-safe values.
      */
     fieldToSchema(field: IField<any>): FieldJsonSchema {
         const config = { ...field.config };
 
+        // 1. RegExp'i string'e çevir
         if (config.pattern instanceof RegExp) {
             config.pattern = config.pattern.source;
+        }
+
+        // 2. Hooks - fonksiyonları filtrele, string expression'ları koru
+        if (config.hooks) {
+            const serializedHooks: Record<string, string> = {};
+
+            Object.entries(config.hooks).forEach(([key, value]) => {
+                if (typeof value === 'string') {
+                    // String expression - JSON'a çevrilebilir
+                    serializedHooks[key] = value;
+                }
+                // Fonksiyon ise - atla (JSON'a çevrilemez)
+            });
+
+            // Sadece string hook'lar varsa config'e ekle
+            if (Object.keys(serializedHooks).length > 0) {
+                config.hooks = serializedHooks as any;
+            } else {
+                delete config.hooks;
+            }
+        }
+
+        // 3. Expression-based config'ler - fonksiyonları filtrele
+        const expressionFields: Array<keyof FieldConfig> = [
+            'requiredWhen',
+            'hideExpression',
+            'disableExpression',
+            'transformOnBlur',
+            'transformOnChange',
+            'customValidator'
+        ];
+
+        expressionFields.forEach(fieldName => {
+            const value = config[fieldName];
+
+            if (value !== undefined) {
+                if (typeof value === 'string') {
+                    // String expression - sakla
+                    // (zaten config'te var, dokunma)
+                } else if (typeof value === 'function') {
+                    // Fonksiyon - JSON'a çevrilemez, sil
+                    delete config[fieldName];
+                }
+            }
+        });
+
+        // 4. Props - kontrol et (şu an statik ama gelecekte fonksiyon olabilir)
+        if (config.props) {
+            // Props içinde fonksiyon var mı kontrol et
+            const sanitizedProps: Record<string, unknown> = {};
+
+            Object.entries(config.props).forEach(([key, value]) => {
+                if (typeof value === 'function') {
+                    // Fonksiyon - atla
+                    console.warn(
+                        `[Zignal] Field "${field.name}" has function-based prop "${key}" which cannot be serialized to JSON. Skipping.`
+                    );
+                } else {
+                    sanitizedProps[key] = value;
+                }
+            });
+
+            config.props = sanitizedProps as any;
         }
 
         return {

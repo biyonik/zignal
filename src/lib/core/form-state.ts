@@ -1,7 +1,8 @@
 import {computed, signal, Signal} from '@angular/core';
 import {z} from 'zod';
-import {FieldValue, IField} from "./interfaces";
+import {FieldHookContext, FieldValue, IField, OnChangeContext} from "./interfaces";
 import {parseExpression} from "./expression-parser";
+import {ExpressionEvaluator} from "./utils";
 
 /**
  * @fileoverview
@@ -708,7 +709,7 @@ export class FormSchema<T extends FormDataType> {
 
                     if (prevValue !== newValue) {
                         try {
-                            hooks.onChange!({
+                            ExpressionEvaluator.executeHook<OnChangeContext<unknown>>(hooks.onChange!, {
                                 fieldName,
                                 value: newValue,
                                 previousValue: prevValue,
@@ -730,7 +731,7 @@ export class FormSchema<T extends FormDataType> {
 
                     if (prevValue !== newValue) {
                         try {
-                            hooks.onChange!({
+                            ExpressionEvaluator.executeHook<OnChangeContext<unknown>>(hooks.onChange!, {
                                 fieldName,
                                 value: newValue,
                                 previousValue: prevValue,
@@ -751,7 +752,7 @@ export class FormSchema<T extends FormDataType> {
 
                     if (!wasTouched && newValue) {
                         try {
-                            hooks.onTouched!({
+                            ExpressionEvaluator.executeHook<FieldHookContext<unknown>>(hooks.onTouched!, {
                                 fieldName,
                                 value: fv.value(),
                                 formValues: values(),
@@ -877,7 +878,7 @@ export class FormSchema<T extends FormDataType> {
                 const hooks = field?.config.hooks;
                 if (hooks?.onReset) {
                     try {
-                        hooks.onReset({
+                        ExpressionEvaluator.executeHook<FieldHookContext<unknown>>(hooks.onReset, {
                             fieldName: name,
                             value: val,
                             formValues: values(),

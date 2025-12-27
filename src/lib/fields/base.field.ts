@@ -4,7 +4,7 @@ import {
     IField,
     FieldConfig,
     FieldValue,
-    ImportResult
+    ImportResult, ExpressionEvaluator
 } from '../core';
 
 /**
@@ -263,7 +263,11 @@ export abstract class BaseField<T> implements IField<T> {
             }
 
             if (this.config.customValidator) {
-                const customError = this.config.customValidator(currentValue);
+                const customError = ExpressionEvaluator.evaluateValidator(
+                    this.config.customValidator,
+                    currentValue,
+                    undefined // formValues yok, base field'da
+                );
                 if (customError) {
                     return { success: false, error: customError };
                 }

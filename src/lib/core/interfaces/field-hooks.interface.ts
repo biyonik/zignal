@@ -40,19 +40,110 @@ export interface OnValidateContext<T = unknown> extends FieldHookContext<T> {
 }
 
 /**
+ * TR: Hook expression tipi.
+ * Fonksiyon veya string expression olabilir.
+ *
+ * EN: Hook expression type.
+ * Can be function or string expression.
+ *
+ * @example
+ * ```typescript
+ * // Fonksiyon olarak
+ * onChange: (ctx) => console.log('Changed:', ctx.value)
+ *
+ * // String expression olarak (JSON'a çevrilebilir!)
+ * onChange: "console.log('Changed:', value)"
+ * ```
+ */
+export type HookExpression<TContext = unknown> =
+    | ((context: TContext) => void)
+    | string;
+
+/**
  * TR: Field lifecycle hooks.
+ *
+ * Hooks artık hem fonksiyon hem de string expression destekler!
+ * String expression'lar JSON'a çevrilebilir ve backend'e kaydedilebilir.
+ *
  * EN: Field lifecycle hooks.
+ *
+ * Hooks now support both functions and string expressions!
+ * String expressions can be serialized to JSON and saved to backend.
+ *
+ * @example
+ * ```typescript
+ * // Fonksiyon ile (runtime only)
+ * hooks: {
+ *   onChange: (ctx) => {
+ *     console.log('Value changed:', ctx.value);
+ *     if (ctx.value.length > 10) {
+ *       console.warn('Too long!');
+ *     }
+ *   }
+ * }
+ *
+ * // String expression ile (JSON'a çevrilebilir!)
+ * hooks: {
+ *   onChange: "console.log('Value changed:', value)",
+ *   onTouched: "console.log('Field touched:', fieldName)",
+ *   onValidate: `
+ *     if (!isValid) {
+ *       console.error('Validation failed:', error);
+ *     }
+ *   `
+ * }
+ * ```
  */
 export interface FieldHooks<T = unknown> {
-    /** TR: Field değeri değiştiğinde / EN: When field value changes */
-    onChange?: (context: OnChangeContext<T>) => void;
+    /**
+     * TR: Field değeri değiştiğinde çalışır.
+     * EN: Runs when field value changes.
+     *
+     * @example
+     * ```typescript
+     * // String expression
+     * onChange: "console.log('New value:', value)"
+     *
+     * // Fonksiyon
+     * onChange: (ctx) => console.log('New value:', ctx.value)
+     * ```
+     */
+    onChange?: HookExpression<OnChangeContext<T>>;
 
-    /** TR: Field touched olduğunda / EN: When field becomes touched */
-    onTouched?: (context: FieldHookContext<T>) => void;
+    /**
+     * TR: Field touched olduğunda çalışır.
+     * EN: Runs when field becomes touched.
+     *
+     * @example
+     * ```typescript
+     * onTouched: "console.log('User touched:', fieldName)"
+     * ```
+     */
+    onTouched?: HookExpression<FieldHookContext<T>>;
 
-    /** TR: Validasyon sonrası / EN: After validation */
-    onValidate?: (context: OnValidateContext<T>) => void;
+    /**
+     * TR: Validasyon sonrası çalışır.
+     * EN: Runs after validation.
+     *
+     * @example
+     * ```typescript
+     * onValidate: `
+     *   if (!isValid) {
+     *     console.error('Validation failed for', fieldName, ':', error);
+     *   }
+     * `
+     * ```
+     */
+    onValidate?: HookExpression<OnValidateContext<T>>;
 
-    /** TR: Form reset edildiğinde / EN: When form is reset */
-    onReset?: (context: FieldHookContext<T>) => void;
+    /**
+     * TR: Form reset edildiğinde çalışır.
+     * EN: Runs when form is reset.
+     *
+     * @example
+     * ```typescript
+     * onReset: "console.log('Field reset:', fieldName)"
+     * ```
+     */
+    onReset?: HookExpression<FieldHookContext<T>>;
 }

@@ -37,4 +37,7 @@ export * from './debug';
 // Expression Parser
 export * from './expression-parser';
 
+// Utility Types
+export * from './utils';
+
 
