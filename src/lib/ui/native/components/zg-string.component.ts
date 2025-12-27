@@ -22,28 +22,40 @@ import { StringField } from '../../../fields/string.field';
         },
     ],
     template: `
-        <div class="zg-field zg-string-field" [class]="cssClass">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-string-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
-            <input
-                [type]="inputType"
-                [id]="field().name"
-                [name]="field().name"
-                [value]="value ?? ''"
-                [placeholder]="field().config.placeholder ?? ''"
-                [disabled]="disabledStatus"
-                [readonly]="readonly"
-                [attr.maxlength]="field().config.maxLength"
-                [attr.aria-label]="field().label"
-                [attr.aria-invalid]="showError"
-                [class.zg-invalid]="showError"
-                class="zg-input"
-                (input)="onInput($event)"
-                (blur)="handleBlur()"
-            />
+            <div class="zg-input-wrapper" [class.has-prefix]="prefixText || prefixIcon" [class.has-suffix]="suffixText || suffixIcon">
+                <span *ngIf="prefixIcon" class="zg-prefix-icon">{{ prefixIcon }}</span>
+                <span *ngIf="prefixText" class="zg-prefix">{{ prefixText }}</span>
+
+                <input
+                        [type]="inputType"
+                        [id]="field().name"
+                        [name]="field().name"
+                        [value]="value ?? ''"
+                        [placeholder]="field().config.placeholder ?? ''"
+                        [disabled]="disabledStatus"
+                        [readonly]="readonly"
+                        [attr.maxlength]="maxLengthValue ?? field().config.maxLength"
+                        [attr.autocomplete]="autocompleteValue"
+                        [attr.tabindex]="tabIndex"
+                        [attr.autofocus]="shouldAutofocus ? true : null"
+                        [attr.aria-label]="field().label"
+                        [attr.aria-invalid]="showError"
+                        [class.zg-invalid]="showError"
+                        class="zg-input"
+                        [class]="inputCssClass"
+                        (input)="onInput($event)"
+                        (blur)="handleBlur()"
+                />
+
+                <span *ngIf="suffixText" class="zg-suffix">{{ suffixText }}</span>
+                <span *ngIf="suffixIcon" class="zg-suffix-icon">{{ suffixIcon }}</span>
+            </div>
 
             <small *ngIf="field().config.hint && !showError" class="zg-hint">
                 {{ field().config.hint }}
@@ -68,12 +80,44 @@ import { StringField } from '../../../fields/string.field';
         .zg-required {
             color: #ef4444;
         }
+        .zg-input-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .zg-prefix, .zg-prefix-icon {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-right: none;
+            border-radius: 6px 0 0 6px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .zg-suffix, .zg-suffix-icon {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-left: none;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
         .zg-input {
+            flex: 1;
             padding: 8px 12px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             font-size: 14px;
             transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .has-prefix .zg-input {
+            border-radius: 0 6px 6px 0;
+        }
+        .has-suffix .zg-input {
+            border-radius: 6px 0 0 6px;
+        }
+        .has-prefix.has-suffix .zg-input {
+            border-radius: 0;
         }
         .zg-input:focus {
             outline: none;

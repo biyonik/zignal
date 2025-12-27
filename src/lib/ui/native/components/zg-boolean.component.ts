@@ -22,25 +22,43 @@ import { BooleanField } from '../../../fields/boolean.field';
         },
     ],
     template: `
-        <div class="zg-field zg-boolean-field" [class]="cssClass()">
-            <label class="zg-checkbox-wrapper">
-                <input
-                    type="checkbox"
-                    [id]="field().name"
-                    [name]="field().name"
-                    [checked]="!!value"
-                    [disabled]="disabledStatus"
-                    [attr.aria-label]="field().label"
-                    [attr.aria-invalid]="showError"
-                    class="zg-checkbox"
-                    (change)="onChange($event)"
-                    (blur)="handleBlur()"
-                />
-                <span class="zg-checkbox-label">
-                    {{ field().label }}
-                    <span *ngIf="field().config.required" class="zg-required">*</span>
-                </span>
+        <div class="zg-field zg-boolean-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
+                {{ field().label }}
+                <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
+
+            <div class="zg-input-wrapper" [class.has-prefix]="prefixText || prefixIcon"
+                 [class.has-suffix]="suffixText || suffixIcon">
+
+                <span *ngIf="prefixIcon" class="zg-prefix-icon">{{ prefixIcon }}</span>
+                <span *ngIf="prefixText" class="zg-prefix">{{ prefixText }}</span>
+
+                <label class="zg-checkbox-wrapper">
+                    <input
+                            type="checkbox"
+                            [id]="field().name"
+                            [name]="field().name"
+                            [checked]="!!value"
+                            class="zg-checkbox"
+                            (change)="onChange($event)"
+                            [value]="value ?? false"
+                            [disabled]="disabledStatus"
+                            [readonly]="readonly()"
+                            [attr.tabindex]="tabIndex"
+                            [attr.autofocus]="shouldAutofocus ? true : null"
+                            [attr.aria-label]="field().label"
+                            [attr.aria-invalid]="showError"
+                            [class.zg-invalid]="showError"
+                            [class]="inputCssClass"
+                            (blur)="handleBlur()"
+                    />
+                    <span class="zg-checkbox-label">
+                        {{ field().label }}
+                        <span *ngIf="field().config.required" class="zg-required">*</span>
+                    </span>
+                </label>
+            </div>
 
             <small *ngIf="field().config.hint && !showError" class="zg-hint">
                 {{ field().config.hint }}

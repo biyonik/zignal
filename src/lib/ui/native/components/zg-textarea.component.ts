@@ -22,35 +22,39 @@ import { TextareaField } from '../../../fields/textarea.field';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="zg-field zg-textarea-field" [class]="cssClass()">
-            <label *ngIf="field().label" [for]="field().name" class="zg-label">
+        <div class="zg-field zg-textarea-field" [class]="wrapperClass">
+            <label *ngIf="field().label" [for]="field().name" class="zg-label" [class]="labelCssClass">
                 {{ field().label }}
                 <span *ngIf="field().config.required" class="zg-required">*</span>
             </label>
 
             <textarea
-                [id]="field().name"
-                [name]="field().name"
-                [value]="value ?? ''"
-                [placeholder]="field().config.placeholder ?? ''"
-                [disabled]="disabledStatus"
-                [readonly]="readonly()"
-                [rows]="field().config.rows ?? 4"
-                [attr.maxlength]="field().config.maxLength"
-                [attr.aria-label]="field().label"
-                [attr.aria-invalid]="showError"
-                [class.zg-invalid]="showError"
-                class="zg-textarea"
-                (input)="onInput($event)"
-                (blur)="handleBlur()"
+                    [id]="field().name"
+                    [name]="field().name"
+                    [value]="value ?? ''"
+                    [placeholder]="field().config.placeholder ?? ''"
+                    [disabled]="disabledStatus"
+                    [readonly]="readonly()"
+                    [rows]="props?.rows ?? field().config.rows ?? 4"
+                    [cols]="props?.cols"
+                    [attr.maxlength]="maxLengthValue ?? field().config.maxLength"
+                    [attr.tabindex]="tabIndex"
+                    [attr.autofocus]="shouldAutofocus ? true : null"
+                    [attr.aria-label]="field().label"
+                    [attr.aria-invalid]="showError"
+                    [class.zg-invalid]="showError"
+                    class="zg-textarea"
+                    [class]="inputCssClass"
+                    (input)="onInput($event)"
+                    (blur)="handleBlur()"
             ></textarea>
 
             <div class="zg-textarea-footer">
                 <small *ngIf="field().config.hint && !showError" class="zg-hint">
                     {{ field().config.hint }}
                 </small>
-                <small *ngIf="field().config.maxLength" class="zg-char-count">
-                    {{ charCount }} / {{ field().config.maxLength }}
+                <small *ngIf="maxLengthValue ?? field().config.maxLength" class="zg-char-count">
+                    {{ charCount }} / {{ maxLengthValue ?? field().config.maxLength }}
                 </small>
             </div>
 

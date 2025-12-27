@@ -13,3 +13,4 @@ export * from './field.interface';
 export * from './field-json-schema';
 export * from './import-result.interface';
 export * from './field-hooks.interface';
+export * from './field-props.interface';

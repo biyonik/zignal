@@ -1,4 +1,5 @@
 import {FieldHooks} from "./field-hooks.interface";
+import {FieldProps} from "./field-props.interface";
 
 /**
  * TR: Değer fonksiyonu tipi - form değerlerini alıp boolean döner
@@ -214,4 +215,21 @@ export interface FieldConfig {
      * EN: Field lifecycle hooks.
      */
     hooks?: FieldHooks;
+
+    /**
+     * TR: Field UI özellikleri.
+     * EN: Field UI properties.
+     *
+     * @example
+     * ```typescript
+     * props: {
+     *     prefixIcon: 'mail',
+     *     cssClass: 'col-md-6',
+     *     attributes: {
+     *         'data-testid': 'email-input'
+     *     }
+     * }
+     * ```
+     */
+    props?: FieldProps;
 }

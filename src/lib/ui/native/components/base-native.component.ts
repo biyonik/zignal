@@ -108,6 +108,112 @@ export abstract class BaseNativeComponent<TField extends IField<TValue>, TValue>
         return this.isTouched && this.error !== null;
     }
 
+    /**
+     * TR: Field props erişimi.
+     * EN: Field props access.
+     */
+    get props() {
+        return this.field().config.props;
+    }
+
+    /**
+     * TR: Wrapper CSS class (props.cssClass + dışarıdan gelen cssClass).
+     * EN: Wrapper CSS class (props.cssClass + external cssClass).
+     */
+    get wrapperClass(): string {
+        const propsClass = this.props?.cssClass ?? '';
+        const inputClass = typeof this.cssClass === 'function' ? this.cssClass() : this.cssClass;
+        return `${propsClass} ${inputClass}`.trim();
+    }
+
+    /**
+     * TR: Input CSS class.
+     * EN: Input CSS class.
+     */
+    get inputCssClass(): string {
+        return this.props?.inputClass ?? '';
+    }
+
+    /**
+     * TR: Label CSS class.
+     * EN: Label CSS class.
+     */
+    get labelCssClass(): string {
+        return this.props?.labelClass ?? '';
+    }
+
+    /**
+     * TR: Prefix text.
+     * EN: Prefix text.
+     */
+    get prefixText(): string | undefined {
+        return this.props?.prefix;
+    }
+
+    /**
+     * TR: Suffix text.
+     * EN: Suffix text.
+     */
+    get suffixText(): string | undefined {
+        return this.props?.suffix;
+    }
+
+    /**
+     * TR: Prefix icon.
+     * EN: Prefix icon.
+     */
+    get prefixIcon(): string | undefined {
+        return this.props?.prefixIcon;
+    }
+
+    /**
+     * TR: Suffix icon.
+     * EN: Suffix icon.
+     */
+    get suffixIcon(): string | undefined {
+        return this.props?.suffixIcon;
+    }
+
+    /**
+     * TR: Extra HTML attributes.
+     * EN: Extra HTML attributes.
+     */
+    get extraAttributes(): Record<string, string | number | boolean> {
+        return this.props?.attributes ?? {};
+    }
+
+    /**
+     * TR: Autofocus.
+     * EN: Autofocus.
+     */
+    get shouldAutofocus(): boolean {
+        return this.props?.autofocus ?? false;
+    }
+
+    /**
+     * TR: Autocomplete.
+     * EN: Autocomplete.
+     */
+    get autocompleteValue(): string | undefined {
+        return this.props?.autocomplete;
+    }
+
+    /**
+     * TR: Tab index.
+     * EN: Tab index.
+     */
+    get tabIndex(): number | undefined {
+        return this.props?.tabindex;
+    }
+
+    /**
+     * TR: Max length.
+     * EN: Max length.
+     */
+    get maxLengthValue(): number | undefined {
+        return this.props?.maxLength;
+    }
+
     ngOnInit(): void {
         if (!this.state()) {
             this.internalState = this.field().createValue();
