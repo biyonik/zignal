@@ -3,7 +3,9 @@ import {
     ChangeDetectionStrategy,
     input,
     computed,
-    output
+    output,
+    OnInit,
+    effect
 } from '@angular/core';
 import { FormSchema, FormState, FormDataType } from '../../core/form-state';
 import { IField, FieldValue } from '../../core/interfaces';
@@ -32,6 +34,12 @@ export interface FormRendererConfig {
     submitText?: string;
     resetText?: string;
     submitDisabledWhenInvalid?: boolean;
+
+    // Validation behavior options
+    validateOnInit?: boolean;          // Form load'da validate et (default: true)
+    validateOnChange?: boolean;        // Her change'de validate et (default: true)
+    touchAllOnSubmit?: boolean;        // Submit'te touchAll çağır (default: true)
+    showErrorsWhenUntouched?: boolean; // Untouched error'ları göster (default: false)
 }
 
 @Component({
@@ -81,10 +89,10 @@ export interface FormRendererConfig {
                         </button>
                     }
                     @if (config()?.showSubmitButton !== false) {
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             class="zg-btn zg-btn--primary"
-                            [disabled]="config()?.submitDisabledWhenInvalid && !formState().valid()">
+                            [disabled]="config()?.submitDisabledWhenInvalid && !isFormValid()">
                             {{ config()?.submitText ?? 'Kaydet' }}
                         </button>
                     }
@@ -170,7 +178,7 @@ export interface FormRendererConfig {
     `],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ZgFormRendererComponent<T extends FormDataType> {
+export class ZgFormRendererComponent<T extends FormDataType> implements OnInit {
     readonly schema = input.required<FormSchema<T>>();
     readonly formState = input.required<FormState<T>>();
     readonly config = input<FormRendererConfig>();
@@ -178,8 +186,53 @@ export class ZgFormRendererComponent<T extends FormDataType> {
     readonly submitted = output<T>();
     readonly resetted = output<void>();
 
+    // Validation timeout for debouncing
+    private validationTimeout?: ReturnType<typeof setTimeout>;
 
     readonly fields = computed(() => this.schema().getFields());
+
+    // Computed signal for form validity (reactive and always up-to-date)
+    readonly isFormValid = computed(() => {
+        const state = this.formState();
+        if (!state) return false;
+        return state.valid();
+    });
+
+    // Value change detection - auto validation
+    private validationEffect = effect(() => {
+        const cfg = this.config();
+        if (cfg?.validateOnChange === false) return;
+
+        // Track value changes
+        const state = this.formState();
+        const values = state?.values();
+
+        // Skip initial run
+        if (!values) return;
+
+        // Debounced validation
+        if (this.validationTimeout) {
+            clearTimeout(this.validationTimeout);
+        }
+
+        this.validationTimeout = setTimeout(() => {
+            state?.validateAll();
+        }, 100);
+    }, { allowSignalWrites: true });
+
+    ngOnInit(): void {
+        const cfg = this.config();
+
+        // Default true - validate on init
+        if (cfg?.validateOnInit !== false) {
+            // Micro-task'ta çalıştır (signals için)
+            setTimeout(() => {
+                const state = this.formState();
+                state.touchAll();
+                state.validateAll();
+            }, 0);
+        }
+    }
 
     isGroupField(field: IField<unknown>): boolean {
         return field instanceof GroupField;
@@ -223,6 +276,20 @@ export class ZgFormRendererComponent<T extends FormDataType> {
     async handleSubmit(event: Event): Promise<void> {
         event.preventDefault();
 
+        // Mark that submit was attempted (for error display)
+        this.formState().setSubmitAttempted(true);
+
+        const cfg = this.config();
+
+        // Touch all fields before validation (default: true)
+        if (cfg?.touchAllOnSubmit !== false) {
+            this.formState().touchAll();
+
+            // Signal'ların güncellenmesi için bekle
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+
+        // Validate all fields
         const isValid = await this.formState().validateAll();
 
         if (isValid) {
@@ -237,6 +304,7 @@ export class ZgFormRendererComponent<T extends FormDataType> {
 
     handleReset(): void {
         this.formState().reset();
+        // Reset already sets submitAttempted to false
         this.resetted.emit();
     }
 }
