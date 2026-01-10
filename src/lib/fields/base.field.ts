@@ -236,17 +236,24 @@ export abstract class BaseField<T> implements IField<T> {
         };
 
         // Wrapped value signal with debounce support
-        const wrappedValue: WritableSignal<T> = {
-            ...value,
-            set: (newValue: T) => {
-                value.set(newValue);
-                syncDebouncedValue(newValue);
-            },
-            update: (fn: (value: T) => T) => {
-                value.update(fn);
-                syncDebouncedValue(value());
-            },
-        } as WritableSignal<T>;
+        // FIXED: Signal is a callable function, spreading loses this!
+        const wrappedValue = Object.assign(
+            // The callable part - reading the value
+            () => value(),
+            // Copy all properties from original signal (including internal Symbol props)
+            value,
+            // Override set and update with our debounced versions
+            {
+                set: (newValue: T) => {
+                    value.set(newValue);
+                    syncDebouncedValue(newValue);
+                },
+                update: (fn: (value: T) => T) => {
+                    value.update(fn);
+                    syncDebouncedValue(value());
+                },
+            }
+        ) as unknown as WritableSignal<T>;
 
         const validationResult = computed(() => {
             const currentValue = debounceMs > 0 ? debouncedValue() : value();
@@ -307,23 +314,30 @@ export abstract class BaseField<T> implements IField<T> {
     ): WritableSignal<T> {
         let timer: ReturnType<typeof setTimeout> | null = null;
 
-        return {
-            ...source,
-            set: (newValue: T) => {
-                source.set(newValue);
-                if (timer) clearTimeout(timer);
-                timer = setTimeout(() => {
-                    debounced.set(newValue);
-                }, delayMs);
-            },
-            update: (fn: (value: T) => T) => {
-                source.update(fn);
-                if (timer) clearTimeout(timer);
-                timer = setTimeout(() => {
-                    debounced.set(source());
-                }, delayMs);
-            },
-        } as WritableSignal<T>;
+        // FIXED: Signal is a callable function, spreading loses this!
+        return Object.assign(
+            // The callable part - reading the value
+            () => source(),
+            // Copy all properties from original signal
+            source,
+            // Override set and update with debounced versions
+            {
+                set: (newValue: T) => {
+                    source.set(newValue);
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        debounced.set(newValue);
+                    }, delayMs);
+                },
+                update: (fn: (value: T) => T) => {
+                    source.update(fn);
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        debounced.set(source());
+                    }, delayMs);
+                },
+            }
+        ) as unknown as WritableSignal<T>;
     }
 
     /**

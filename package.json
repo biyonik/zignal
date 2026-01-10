@@ -56,11 +56,13 @@
     }
   },
   "devDependencies": {
+    "@angular/cdk": "^17.3.10",
     "@angular/common": "^17.3.12",
     "@angular/compiler": "^17.3.12",
     "@angular/compiler-cli": "^17.3.12",
     "@angular/core": "^17.3.12",
     "@angular/forms": "^17.3.12",
+    "@angular/material": "^17.3.10",
     "@angular/platform-browser": "^17.3.12",
     "@types/jest": "^29.5.0",
     "jest": "^29.7.0",
