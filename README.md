@@ -453,6 +453,178 @@ export class DynamicFormComponent {
 
 ---
 
+## TR: Form Validation Behavior | EN: Form Validation Behavior
+
+### TR: Validation Lifecycle | EN: Validation Lifecycle
+
+Zignal forms provide comprehensive validation with configurable behavior:
+
+#### Default Behavior
+
+```typescript
+const schema = new FormSchema<LoginForm>([
+  new EmailField('email', 'Email', { required: true }),
+  new PasswordField('password', 'Password', { required: true })
+]);
+
+const form = schema.createForm({ email: '', password: '' });
+```
+
+**Key Concepts:**
+- **`valid()`**: Returns `true` if all fields are valid, **independent of touched state**
+- **`error()`**: Shows error **only if field is touched**
+- **`validateAll()`**: Validates all fields and **automatically touches them** (default behavior)
+- **`touchAll()`**: Marks all fields as touched to show all errors
+
+#### Form Renderer Configuration
+
+```typescript
+<zg-form-renderer
+  [schema]="schema"
+  [formState]="form"
+  [config]="{
+    submitDisabledWhenInvalid: true,  // Disable submit if invalid (default: false)
+    validateOnInit: true,              // Validate when form loads (default: true)
+    validateOnChange: true,            // Validate on value change (default: true)
+    touchAllOnSubmit: true,            // Touch all on submit (default: true)
+    showErrorsWhenUntouched: false     // Show errors before touch (default: false)
+  }"
+  (submitted)="onSubmit($event)"
+/>
+```
+
+#### Submit Validation Workflow
+
+```typescript
+async handleSubmit() {
+  // 1. Mark submit attempted (for error display)
+  form.setSubmitAttempted(true);
+
+  // 2. Touch all fields (default behavior)
+  form.touchAll();
+
+  // 3. Wait for signal updates
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  // 4. Validate all fields
+  const isValid = await form.validateAll();
+
+  // 5. Submit only if valid
+  if (isValid) {
+    const data = form.getValues();
+    // Send to API...
+  }
+}
+```
+
+#### Validation Options
+
+**validateAll() Parameters:**
+
+```typescript
+// Touch all fields before validation (default)
+await form.validateAll();  // Same as validateAll(true)
+
+// Skip touching fields
+await form.validateAll(false);
+```
+
+**Partial Validation:**
+
+```typescript
+// Validate only specific fields
+const isValid = form.validateFields(['email', 'password']);
+// Only email and password are touched and validated
+```
+
+#### Error Display Patterns
+
+**Pattern 1: Show errors only after touch**
+
+```html
+@if (form.fields.email.error()) {
+  <span class="error">{{ form.fields.email.error() }}</span>
+}
+```
+
+**Pattern 2: Show errors after submit attempt**
+
+```html
+@if (form.fields.email.error() || form.submitAttempted()) {
+  <span class="error">{{ form.fields.email.error() }}</span>
+}
+```
+
+**Pattern 3: Always show errors (not recommended)**
+
+```html
+@if (!form.fields.email.valid()) {
+  <span class="error">Required field validation failed</span>
+}
+```
+
+#### Button State Management
+
+The form renderer uses a reactive `isFormValid()` computed signal:
+
+```typescript
+// In component
+readonly isFormValid = computed(() => {
+  const state = this.formState();
+  return state ? state.valid() : false;
+});
+
+// In template
+<button
+  type="submit"
+  [disabled]="config()?.submitDisabledWhenInvalid && !isFormValid()">
+  Submit
+</button>
+```
+
+This ensures the button state is always synchronized with form validity.
+
+#### Best Practices
+
+1. **Always use `validateAll()` before submit**
+   ```typescript
+   if (await form.validateAll()) {
+     // Submit...
+   }
+   ```
+
+2. **Touch fields on blur for better UX**
+   ```html
+   <input
+     (blur)="form.fields.email.touched.set(true)"
+   />
+   ```
+
+3. **Use `submitAttempted` for comprehensive error display**
+   ```typescript
+   const shouldShowError = computed(() =>
+     form.fields.email.error() &&
+     (form.fields.email.touched() || form.submitAttempted())
+   );
+   ```
+
+4. **Leverage auto-validation on change**
+   ```typescript
+   // Enabled by default in form renderer
+   validateOnChange: true  // Validates 100ms after value change
+   ```
+
+#### Migration Notes
+
+If you're upgrading from an earlier version:
+
+- `validateAll()` now touches all fields by default (use `validateAll(false)` to disable)
+- `valid()` is independent of touched state (always reflects true validity)
+- `submitAttempted` signal is now available on FormState
+- Form renderer validates on init by default (use `validateOnInit: false` to disable)
+
+---
+
 ## TR: Lisans | EN: License
 
 MIT License - Ahmet ALTUN

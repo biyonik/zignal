@@ -143,6 +143,15 @@ export interface FormState<T extends FormDataType> {
     pristine: Signal<boolean>;
 
     /**
+     * TR: Form submit denemesi yapıldı mı?
+     * Error display için kullanılır.
+     *
+     * EN: Was form submit attempted?
+     * Used for error display.
+     */
+    submitAttempted: Signal<boolean>;
+
+    /**
      * TR: T�m alanları "dokunulmu_" olarak i_aretler.
      * Submit �ncesi t�m hataları g�stermek i�in kullanılır.
      *
@@ -150,6 +159,13 @@ export interface FormState<T extends FormDataType> {
      * Used to show all errors before submit.
      */
     touchAll: () => void;
+
+    /**
+     * TR: Submit denemesi durumunu ayarlar.
+     *
+     * EN: Sets submit attempt status.
+     */
+    setSubmitAttempted: (attempted: boolean) => void;
 
     /**
      * TR: Formu ba_langı� deerlerine sıfırlar.
@@ -210,7 +226,7 @@ export interface FormState<T extends FormDataType> {
      *
      * @returns TR: Form ge�erli ise true / EN: True if form is valid
      */
-    validateAll: () => Promise<boolean>;
+    validateAll: (touchFirst?: boolean) => Promise<boolean>;
 
     /**
      * TR: Belirli bir alanı dirty olarak i_aretler.
@@ -657,6 +673,10 @@ export class FormSchema<T extends FormDataType> {
 
         const formFields = Object.fromEntries(fieldEntries) as FormState<T>['fields'];
 
+        // TR: Submit attempt tracking
+        // EN: Submit attempt tracking
+        const submitAttempted = signal(false);
+
         // TR: Başlangıç değerlerini her alan için sakla (dirty hesaplaması için)
         // EN: Store initial values for each field (for dirty calculation)
         const initialFieldValues = new Map<string, unknown>();
@@ -861,9 +881,14 @@ export class FormSchema<T extends FormDataType> {
             }
         };
 
+        const setSubmitAttempted = (attempted: boolean): void => {
+            submitAttempted.set(attempted);
+        };
+
         const reset = (newInitial?: Partial<T>): void => {
             const resetValues = newInitial ?? initialValues();
             initialValues.set({...resetValues} as T);
+            submitAttempted.set(false);
 
             for (const [name, fv] of Object.entries(formFields)) {
                 const val = resetValues[name as keyof T] ?? null;
@@ -920,8 +945,10 @@ export class FormSchema<T extends FormDataType> {
             return result;
         };
 
-        const validateAll = async (): Promise<boolean> => {
-            touchAll();
+        const validateAll = async (touchFirst: boolean = true): Promise<boolean> => {
+            if (touchFirst) {
+                touchAll();
+            }
             const result = await this.zodSchema.safeParseAsync(values());
             return result.success;
         };
@@ -1002,7 +1029,9 @@ export class FormSchema<T extends FormDataType> {
             crossErrors,
             dirty,
             pristine,
+            submitAttempted,
             touchAll,
+            setSubmitAttempted,
             reset,
             setValue,
             patchValues,

@@ -882,4 +882,169 @@ describe('FormSchema (The Brain) Hard Core Tests', () => {
             expect(form.values()).toEqual({ product: 'laptop', quantity: 5 });
         });
     });
+
+    // ==========================================================================
+    // 13. VALIDATION EDGE CASES (Form Validation Behavior)
+    // ==========================================================================
+    describe('Validation Edge Cases', () => {
+
+        it('should detect untouched required fields as invalid', () => {
+            const schema = new FormSchema<{ name: string; email: string }>([
+                new StringField('name', 'Name', { required: true }),
+                new EmailField('email', 'Email', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '', email: '' });
+
+            // Fields are untouched but form should be invalid
+            expect(form.fields.name.touched()).toBe(false);
+            expect(form.fields.email.touched()).toBe(false);
+            expect(form.valid()).toBe(false);
+        });
+
+        it('should touch all fields on validateAll by default', async () => {
+            const schema = new FormSchema<{ name: string; email: string }>([
+                new StringField('name', 'Name', { required: true }),
+                new EmailField('email', 'Email', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '', email: '' });
+
+            expect(form.fields.name.touched()).toBe(false);
+            expect(form.fields.email.touched()).toBe(false);
+
+            await form.validateAll();
+
+            expect(form.fields.name.touched()).toBe(true);
+            expect(form.fields.email.touched()).toBe(true);
+        });
+
+        it('should not touch fields when validateAll(false) is called', async () => {
+            const schema = new FormSchema<{ name: string; email: string }>([
+                new StringField('name', 'Name', { required: true }),
+                new EmailField('email', 'Email', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '', email: '' });
+
+            await form.validateAll(false);
+
+            expect(form.fields.name.touched()).toBe(false);
+            expect(form.fields.email.touched()).toBe(false);
+        });
+
+        it('should show errors only for touched fields', () => {
+            const schema = new FormSchema<{ name: string; email: string }>([
+                new StringField('name', 'Name', { required: true }),
+                new EmailField('email', 'Email', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '', email: '' });
+
+            // Untouched - no errors shown
+            expect(form.fields.name.error()).toBeNull();
+            expect(form.fields.email.error()).toBeNull();
+
+            // Touch name field
+            form.fields.name.touched.set(true);
+
+            // Only name shows error
+            expect(form.fields.name.error()).toBeDefined();
+            expect(form.fields.email.error()).toBeNull();
+        });
+
+        it('should mark field as invalid even when untouched', () => {
+            const schema = new FormSchema<{ name: string }>([
+                new StringField('name', 'Name', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '' });
+
+            // Field is untouched but should be invalid
+            expect(form.fields.name.touched()).toBe(false);
+            expect(form.fields.name.valid()).toBe(false);
+        });
+
+        it('should validate correctly after touchAll', () => {
+            const schema = new FormSchema<{ name: string; email: string }>([
+                new StringField('name', 'Name', { required: true }),
+                new EmailField('email', 'Email', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '', email: '' });
+
+            form.touchAll();
+
+            // All errors should be visible
+            expect(form.fields.name.error()).toBeDefined();
+            expect(form.fields.email.error()).toBeDefined();
+        });
+
+        it('should handle submit attempt tracking', () => {
+            const schema = new FormSchema<{ name: string }>([
+                new StringField('name', 'Name', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '' });
+
+            // Initially no submit attempted
+            expect(form.submitAttempted()).toBe(false);
+
+            // Simulate submit attempt
+            form.setSubmitAttempted(true);
+            expect(form.submitAttempted()).toBe(true);
+
+            // Reset should clear submit attempted
+            form.reset();
+            expect(form.submitAttempted()).toBe(false);
+        });
+
+        it('should handle empty required field validation', async () => {
+            const schema = new FormSchema<{ name: string }>([
+                new StringField('name', 'Name', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: '' });
+
+            const isValid = await form.validateAll();
+
+            expect(isValid).toBe(false);
+            expect(form.fields.name.touched()).toBe(true);
+            expect(form.fields.name.error()).toBeDefined();
+        });
+
+        it('should handle partial form validation', () => {
+            const schema = new FormSchema<{ name: string; email: string; phone: string }>([
+                new StringField('name', 'Name', { required: true }),
+                new EmailField('email', 'Email', { required: true }),
+                new StringField('phone', 'Phone', { required: true })
+            ]);
+
+            const form = schema.createForm({ name: 'John', email: '', phone: '' });
+
+            // Validate only specific fields
+            const isValid = form.validateFields(['name', 'email']);
+
+            expect(form.fields.name.touched()).toBe(true);
+            expect(form.fields.email.touched()).toBe(true);
+            expect(form.fields.phone.touched()).toBe(false);
+            expect(isValid).toBe(false); // email is invalid
+        });
+
+        it('should maintain validation state after value change', () => {
+            const schema = new FormSchema<{ email: string }>([
+                new EmailField('email', 'Email', { required: true })
+            ]);
+
+            const form = schema.createForm({ email: 'invalid' });
+
+            form.fields.email.touched.set(true);
+            expect(form.fields.email.error()).toBeDefined();
+
+            // Fix the value
+            form.setValue('email', 'valid@example.com');
+            expect(form.fields.email.error()).toBeNull();
+            expect(form.fields.email.touched()).toBe(true);
+        });
+    });
 });
